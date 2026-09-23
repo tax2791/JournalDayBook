@@ -1,0 +1,50 @@
+<resources>
+    <!-- Name array for the first Spinner -->
+    <string-array name="name_array">
+        <item>Select a name</item>
+
+    </string-array>
+
+    <!-- Item array for the second Spinner -->
+    <string-array name="item_array">
+        <item>Select an item</item>
+        <item>Grocery</item>
+        <item>Vegetable</item>
+        <item>Others</item>
+        <item>Education</item>
+        <item>Admin</item>
+        <item>Meal</item>
+        <item>Travelling</item>
+        <item>Deposit</item>
+        <item>Eating</item>
+        <item>Clothing</item>
+        <item>Electronics</item>
+    </string-array>
+
+    <!-- Meal array for the third Spinner -->
+    <string-array name="meal_array">
+        <item>Select a meal</item>
+        <item>2</item>
+        <item>1</item>
+        <item>-1</item>
+        <item>-2</item>
+
+    </string-array>
+
+    <string name="price">Price</string>
+    <string name="welcome_to_mess">Welcome to Mess</string>
+    <string name="expenditure_details">Expenditure Details</string>
+    <string name="select_date">Select Date</string>
+    <string name="no_date_selected">No date selected</string>
+    <string name="submit">Submit</string>
+    <string name="view_details">View Details</string>
+    <string name="open_calculator">Open Calculator</string>
+    <string name="home">Home</string>
+    <string name="show_chart">Show Chart</string>
+    <string name="offline">Offline</string>
+    <string name="welcome">Welcome</string>
+    <string name="app_name">Journal Day Book</string>
+
+    <string name="default_web_client_id">165408958996-641m82ohm1vnmu82fh0pcgkjlrog13tl.apps.googleusercontent.com</string>
+
+</resources>

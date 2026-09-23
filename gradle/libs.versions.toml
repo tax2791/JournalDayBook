@@ -1,0 +1,261 @@
+[versions]
+activityCompose = "1.11.0"
+agp = "8.13.0"
+annotations = "26.0.2-1"
+appUpdate = "2.1.0"
+appUpdateKtx = "2.1.0"
+compose = "2.2.1"
+composeM3 = "2.2.1"
+composeM3Version = "2.2.1"
+composeVersion = "2.2.1"
+converterGson = "3.0.0"
+core = "2.2.1"
+coreVersion = "2.2.1"
+datetime = "0.9.0"
+firebaseAuth = "24.0.1"
+firebaseBom = "34.5.0"
+firebaseFirestore = "26.0.2"
+firebaseFirestoreKtx = "25.1.4"
+firebaseStorageKtx = "21.0.2"
+googleApiClient = "2.8.1"
+googleApiClientAndroid = "2.8.1"
+googleApiClientAndroidVersion = "2.8.1"
+googleApiClientExtensions = "1.6.0-beta"
+googleApiClientGson = "2.8.1"
+googleApiServicesDrive = "v3-rev197-1.25.0"
+googleApiServicesDriveVersion = "v3-rev20230815-2.0.0"
+googleApiServicesStorage = "v1-rev171-1.25.0"
+googleGoogleApiServicesDrive = "v3-rev202-1.25.0"
+googleHttpClientGson = "2.0.2"
+googleOauthClientJetty = "1.39.0"
+googleOauthClientJettyVersion = "1.39.0"
+googleServices = "4.4.4"
+gson = "2.13.2"
+hiltAndroid = "2.57.2"
+hiltAndroidCompiler = "2.57.2"
+hiltCompiler = "2.57.2"
+integrity = "1.5.0"
+itextg = "5.5.10"
+kotlin = "2.2.21"
+coreKtx = "1.17.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+appcompat = "1.7.1"
+lifecycleRuntimeCompose = "2.9.4"
+loggingInterceptor = "5.2.1"
+material = "1.13.0"
+material3 = "1.4.0"
+materialVersion = "1.7.8"
+media2 = "1.2.1"
+media3Exoplayer = "1.8.0"
+media3Session = "1.8.0"
+media3Ui = "1.8.0"
+
+navigationCompose = "2.9.5"
+okhttp = "5.2.1"
+playServicesAuth = "21.4.0"
+playServicesAuthApiPhone = "18.3.0"
+playServicesAuthVersion = "21.4.0"
+playServicesBom = "23.3.0"
+retrofit = "3.0.0"
+roomRuntime = "2.8.3"
+roomVersion = "2.8.3"
+vico = "1.13.0"
+runtimeLivedata = "1.9.4"
+runtimeLivedataVersion = "1.10.0-beta01"
+supportAnnotations = "28.0.0"
+ui = "1.9.4"
+uiTooling = "1.9.4"
+volley = "1.2.1"
+recyclerview = "1.4.0"
+animatedVectorDrawable = "28.0.0"
+vectordrawableAnimated = "1.2.0"
+appcompatV7 = "28.0.0"
+car = "28.0.0-alpha5"
+carVersion = "1.0.0-alpha7"
+cardviewV7 = "28.0.0"
+cardview = "1.0.0"
+collections = "28.0.0"
+collection = "1.5.0"
+customtabs = "28.0.0"
+browser = "1.9.0"
+design = "28.0.0"
+exifinterface = "28.0.0"
+exifinterfaceVersion = "1.4.1"
+gridlayoutV7 = "28.0.0"
+gridlayout = "1.1.0"
+heifwriter = "28.0.0"
+heifwriterVersion = "1.1.0"
+leanbackV17 = "28.0.0"
+leanback = "1.2.0"
+mediarouterV7 = "28.0.0"
+mediarouter = "1.8.1"
+palette = "1.0.0"
+paletteV7 = "28.0.0"
+multidexInstrumentation = "2.0.0"
+percent = "28.0.0"
+percentlayout = "1.0.0"
+multidex = "1.0.3"
+multidexVersion = "2.0.1"
+preferenceV7 = "28.0.0"
+multidexInstrumentationVersion = "1.0.3"
+leanbackPreference = "1.2.0"
+legacyPreferenceV14 = "1.0.0"
+recommendation = "1.0.0"
+legacySupportCoreUi = "1.0.0"
+playServicesAds = "24.7.0"
+localbroadcastmanager = "28.0.0"
+preferenceLeanbackV17 = "28.0.0"
+preferenceV14 = "28.0.0"
+preference = "1.2.1"
+recommendationVersion = "28.0.0"
+ksp = "2.0.21-1.0.27"
+#noinspection UseOfBundledGooglePlayServices
+playServices = "12.0.1"
+runtime = "1.9.4"
+
+[libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-adaptive = { module = "androidx.compose.material3.adaptive:adaptive" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation" }
+androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleRuntimeCompose" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeCompose" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeCompose" }
+androidx-material = { module = "androidx.compose.material:material", version = "1.9.4" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialVersion" }
+androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+androidx-material3-window-size-class1 = { module = "androidx.compose.material3:material3-window-size-class", version.ref = "material3" }
+androidx-media2 = { module = "androidx.media2:media2", version.ref = "media2" }
+androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3Session" }
+androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Ui" }
+androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Exoplayer" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+#noinspection SimilarGradleDependency
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+androidx-room-ktx-v261 = { module = "androidx.room:room-ktx", version.ref = "roomVersion" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-room-runtime-v261 = { module = "androidx.room:room-runtime", version.ref = "roomVersion" }
+androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
+androidx-runtime-livedata-v1100alpha05 = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedataVersion" }
+androidx-runtime-rxjava2 = { module = "androidx.compose.runtime:runtime-rxjava2" }
+androidx-ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
+androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "uiTooling" }
+androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+app-update = { module = "com.google.android.play:app-update", version.ref = "appUpdate" }
+app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "appUpdateKtx" }
+com-google-firebase-firebase-auth-ktx2 = { module = "com.google.firebase:firebase-auth-ktx" }
+com-google-firebase-firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
+com-google-firebase-firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
+compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "compose" }
+compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "composeM3" }
+compose-m3-v200 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "composeM3Version" }
+compose-v200beta1 = { module = "com.patrykandpatrick.vico:compose", version.ref = "composeVersion" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+core-v200 = { module = "com.patrykandpatrick.vico:core", version.ref = "core" }
+datetime = { module = "io.github.vanpra.compose-material-dialogs:datetime", version.ref = "datetime" }
+firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
+firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
+firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx" }
+gms-play-services-ads = { module = "com.google.android.gms:play-services-ads" }
+gms-play-services-auth = { module = "com.google.android.gms:play-services-auth" }
+gms-play-services-auth-api-phone = { module = "com.google.android.gms:play-services-auth-api-phone" }
+google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClient" }
+google-api-client-android-v1332 = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClientAndroidVersion" }
+google-api-client-extensions = { module = "com.google.api-client:google-api-client-extensions", version.ref = "googleApiClientExtensions" }
+google-api-client-gson = { module = "com.google.api-client:google-api-client-gson", version.ref = "googleApiClientGson" }
+google-api-services-drive = { module = "com.google.apis:google-api-services-drive", version.ref = "googleApiServicesDrive" }
+google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClientAndroid" }
+google-api-services-drive-vv3rev2021250 = { module = "com.google.apis:google-api-services-drive", version.ref = "googleGoogleApiServicesDrive" }
+google-api-services-drive-vv3rev20230815200 = { module = "com.google.apis:google-api-services-drive", version.ref = "googleApiServicesDriveVersion" }
+google-api-services-storage = { module = "com.google.apis:google-api-services-storage", version.ref = "googleApiServicesStorage" }
+google-firebase-auth = { module = "com.google.firebase:firebase-auth" }
+google-firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version = "23.2.1" }
+google-firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
+google-firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
+google-http-client-gson = { module = "com.google.http-client:google-http-client-gson", version.ref = "googleHttpClientGson" }
+google-oauth-client-jetty = { module = "com.google.oauth-client:google-oauth-client-jetty", version.ref = "googleOauthClientJetty" }
+google-oauth-client-jetty-v1341 = { module = "com.google.oauth-client:google-oauth-client-jetty", version.ref = "googleOauthClientJettyVersion" }
+google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompiler" }
+integrity = { module = "com.google.android.play:integrity", version.ref = "integrity" }
+itextg = { module = "com.itextpdf:itextg", version.ref = "itextg" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+material3 = { module = "androidx.compose.material3:material3" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+play-services-auth-api-phone = { module = "com.google.android.gms:play-services-auth-api-phone", version.ref = "playServicesAuthApiPhone" }
+play-services-auth-v2100 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
+play-services-bom = { module = "com.google.android.gms:play-services-bom", version.ref = "playServicesBom" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+support-annotations = { group = "com.android.support", name = "support-annotations", version.ref = "supportAnnotations" }
+ui = { module = "androidx.compose.ui:ui" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+vico-core = { module = "com.patrykandpatrick.vico:core", version.ref = "coreVersion" }
+volley = { module = "com.android.volley:volley", version.ref = "volley" }
+androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+animated-vector-drawable = { group = "com.android.support", name = "animated-vector-drawable", version.ref = "animatedVectorDrawable" }
+androidx-vectordrawable-animated = { group = "androidx.vectordrawable", name = "vectordrawable-animated", version.ref = "vectordrawableAnimated" }
+appcompat-v7 = { group = "com.android.support", name = "appcompat-v7", version.ref = "appcompatV7" }
+car = { group = "com.android.support", name = "car", version.ref = "car" }
+androidx-car = { group = "androidx.car", name = "car", version.ref = "carVersion" }
+cardview-v7 = { group = "com.android.support", name = "cardview-v7", version.ref = "cardviewV7" }
+androidx-cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+collections = { group = "com.android.support", name = "collections", version.ref = "collections" }
+androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "collection" }
+customtabs = { group = "com.android.support", name = "customtabs", version.ref = "customtabs" }
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
+design = { group = "com.android.support", name = "design", version.ref = "design" }
+exifinterface = { group = "com.android.support", name = "exifinterface", version.ref = "exifinterface" }
+androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterfaceVersion" }
+gridlayout-v7 = { group = "com.android.support", name = "gridlayout-v7", version.ref = "gridlayoutV7" }
+androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
+heifwriter = { group = "com.android.support", name = "heifwriter", version.ref = "heifwriter" }
+androidx-heifwriter = { group = "androidx.heifwriter", name = "heifwriter", version.ref = "heifwriterVersion" }
+leanback-v17 = { group = "com.android.support", name = "leanback-v17", version.ref = "leanbackV17" }
+androidx-leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }
+mediarouter-v7 = { group = "com.android.support", name = "mediarouter-v7", version.ref = "mediarouterV7" }
+androidx-mediarouter = { group = "androidx.mediarouter", name = "mediarouter", version.ref = "mediarouter" }
+androidx-palette = { group = "androidx.palette", name = "palette", version.ref = "palette" }
+palette-v7 = { group = "com.android.support", name = "palette-v7", version.ref = "paletteV7" }
+androidx-multidex-instrumentation = { group = "androidx.multidex", name = "multidex-instrumentation", version.ref = "multidexInstrumentation" }
+percent = { group = "com.android.support", name = "percent", version.ref = "percent" }
+androidx-percentlayout = { group = "androidx.percentlayout", name = "percentlayout", version.ref = "percentlayout" }
+multidex = { group = "com.android.support", name = "multidex", version.ref = "multidex" }
+androidx-multidex = { group = "androidx.multidex", name = "multidex", version.ref = "multidexVersion" }
+preference-v7 = { group = "com.android.support", name = "preference-v7", version.ref = "preferenceV7" }
+multidex-instrumentation = { group = "com.android.support", name = "multidex-instrumentation", version.ref = "multidexInstrumentationVersion" }
+androidx-leanback-preference = { group = "androidx.leanback", name = "leanback-preference", version.ref = "leanbackPreference" }
+androidx-legacy-preference-v14 = { group = "androidx.legacy", name = "legacy-preference-v14", version.ref = "legacyPreferenceV14" }
+androidx-recommendation = { group = "androidx.recommendation", name = "recommendation", version.ref = "recommendation" }
+androidx-legacy-support-core-ui = { group = "androidx.legacy", name = "legacy-support-core-ui", version.ref = "legacySupportCoreUi" }
+play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+localbroadcastmanager = { group = "com.android.support", name = "localbroadcastmanager", version.ref = "localbroadcastmanager" }
+preference-leanback-v17 = { group = "com.android.support", name = "preference-leanback-v17", version.ref = "preferenceLeanbackV17" }
+preference-v14 = { group = "com.android.support", name = "preference-v14", version.ref = "preferenceV14" }
+androidx-preference = { group = "androidx.preference", name = "preference", version.ref = "preference" }
+recommendation = { group = "com.android.support", name = "recommendation", version.ref = "recommendationVersion" }
+play-services = { group = "com.google.android.gms", name = "play-services", version.ref = "playServices" }
+androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version = "2.2.20-2.0.3" }

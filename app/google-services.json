@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "165408958996",
+    "project_id": "journal-daybook-cc342",
+    "storage_bucket": "journal-daybook-cc342.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165408958996:android:713297559f4b1af6dd9501",
+        "android_client_info": {
+          "package_name": "com.kushal.mealapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "165408958996-pdo46ibtr1keopptvnes6i93t9f8l88q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kushal.mealapp",
+            "certificate_hash": "9a1992ef7a3c10f480bfeeb5367c09101dcc69c0"
+          }
+        },
+        {
+          "client_id": "165408958996-641m82ohm1vnmu82fh0pcgkjlrog13tl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_fghDn9qES4snVjIwypvNTi-W5W-A4fQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "117041814586115120688",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-8250990399942328~3440931106"
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingLeanbackLauncher">
+
+    <!-- Internet permission -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <!-- ✅ Required for AdMob / Advertising ID access on Android 13+ -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"
+        tools:ignore="AdvertisingIdPolicy" />
+
+    <application
+        android:name="com.kushal.mealapp.database.MyApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.MyApplication">
+        <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-8250990399942328~3440931106" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+
+        <!-- Launcher activity -->
+        <activity
+            android:name="com.kushal.mealapp.HomeActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Other activities -->
+        <activity
+            android:name="com.kushal.mealapp.MainActivity"
+            android:exported="true" />
+
+
+        <activity
+            android:name="com.kushal.mealapp.NameActivityAPI"
+            android:exported="true" />
+
+        <activity
+            android:name="com.kushal.mealapp.Details"
+            android:exported="true" />
+
+
+
+        <activity
+            android:name="com.kushal.mealapp.DashboardActivity"
+            android:exported="true" />
+
+        <activity
+        android:name="users.UserDetailsActivity" />
+
+        <activity
+            android:name="com.kushal.mealapp.TotalSummary"
+            android:exported="true" />
+
+
+
+        <activity android:name="journal.JournalActivity" />
+
+
+        <activity
+            android:name=".GoogleSignInActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="stock.StockActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="stock.StockReportActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="database.MealActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.kushal.mealapp.LoginComposeActivity"
+            android:exported="false" />
+
+    </application>
+
+
+</manifest>
