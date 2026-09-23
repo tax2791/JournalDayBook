@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
@@ -783,7 +785,9 @@ fun FormStyleCascadingCalendar(
     }
 }
 
-// --- Tab 3: Live Forex Converter ---
+
+
+// --- Tab 2: Live Forex Converter ---
 
 @Composable
 fun LiveForexConverterContent() {
@@ -1021,10 +1025,9 @@ fun SelectDropdown(label: String, selected: String, options: List<String>, onSel
     Box {
         OutlinedButton(
             onClick = { expanded = true },
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.fillMaxWidth()
+            shape = RoundedCornerShape(10.dp)
         ) {
-            Text("$label: $selected", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF0D47A1), maxLines = 1)
+            Text("$label: $selected", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF0D47A1))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
@@ -1052,7 +1055,7 @@ private fun MetricRow(title: String, value: String) {
     }
 }
 
-// --- Calculation Mathematics & Helpers ---
+// --- Conversion Mathematics & Networking ---
 
 fun getMonthIndex(monthName: String): Int {
     val months = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
@@ -1097,6 +1100,7 @@ fun computeAge(bDay: Int, bMonth: Int, bYear: Int, tDay: Int, tMonth: Int, tYear
     }
 }
 
+
 fun computeEMI(principal: String, interest: String, tenureMonths: String): EMIResultData? {
     return try {
         val p = principal.toDouble()
@@ -1128,6 +1132,7 @@ fun computeEMI(principal: String, interest: String, tenureMonths: String): EMIRe
 
 suspend fun fetchLiveRate(base: String, target: String): Double {
     return withContext(Dispatchers.IO) {
+        // Free open endpoint with no authentication token needed
         val url = URL("https://open.er-api.com/v6/latest/$base")
         val response = url.readText()
         val json = JSONObject(response)
