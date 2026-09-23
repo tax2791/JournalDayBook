@@ -4,8 +4,13 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +18,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +30,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
+import java.util.Calendar
 import kotlin.math.pow
 
 // --- Models ---
@@ -48,8 +58,18 @@ data class EMIResultData(
     val breakdown: List<EMIMonthly>
 )
 
+data class AgeResultData(
+    val years: Int,
+    val months: Int,
+    val days: Int,
+    val totalMonths: Int,
+    val totalWeeks: Int,
+    val totalDays: Int
+)
+
 enum class ConverterType(val title: String) {
     EMI("EMI"),
+    AGE("Age"),
     FOREX("Forex (FX)"),
     LENGTH("Length"),
     WEIGHT("Weight"),
@@ -119,6 +139,7 @@ fun EMICalculatorPage(onBack: () -> Unit) {
             ) { activeTab ->
                 when (activeTab) {
                     ConverterType.EMI -> EMICalculatorContent()
+                    ConverterType.AGE -> AgeCalculatorContent()
                     ConverterType.FOREX -> LiveForexConverterContent()
                     ConverterType.LENGTH -> UnitConverterContent(
                         categoryName = "Length Converter",
@@ -304,7 +325,465 @@ fun EMICalculatorContent() {
     }
 }
 
-// --- Tab 2: Live Forex Converter ---
+// --- Tab 2: Age Calculator Screen ---
+@Composable
+fun AgeCalculatorContent() {
+    val currentCal = Calendar.getInstance()
+    val currentYear = currentCal.get(Calendar.YEAR)
+    val currentMonth = currentCal.get(Calendar.MONTH) + 1
+    val currentDay = currentCal.get(Calendar.DAY_OF_MONTH)
+
+    // Birth Date States (Default: Current Date)
+    var birthDay by remember { mutableStateOf(currentDay.toString()) }
+    var birthMonth by remember { mutableStateOf(getMonthName(currentMonth)) }
+    var birthYear by remember { mutableStateOf(currentYear.toString()) }
+
+    // Target Date States (Default: Current device date)
+    var targetDay by remember { mutableStateOf(currentDay.toString()) }
+    var targetMonth by remember { mutableStateOf(getMonthName(currentMonth)) }
+    var targetYear by remember { mutableStateOf(currentYear.toString()) }
+
+    var activePicker by remember { mutableStateOf<String?>(null) } // "birth" or "target"
+    var ageResult by remember { mutableStateOf<AgeResultData?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val daysList = (1..31).map { it.toString() }
+    val monthsList = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        item {
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                elevation = 4.dp,
+                backgroundColor = Color.White,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text("Age Calculator", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Date of Birth Section
+                    Text("Date of Birth", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1565C0))
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            SelectDropdown(label = "Day", selected = birthDay, options = daysList) { birthDay = it }
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Box(modifier = Modifier.weight(1.4f)) {
+                            SelectDropdown(label = "Month", selected = birthMonth, options = monthsList) { birthMonth = it }
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        OutlinedTextField(
+                            value = birthYear,
+                            onValueChange = { birthYear = it },
+                            label = { Text("Year") },
+                            modifier = Modifier.weight(1.1f),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        IconButton(
+                            onClick = { activePicker = "birth" },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFE3F2FD))
+                        ) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Open Calendar", tint = Color(0xFF1565C0))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Target Date Section
+                    Text("Calculate Age As Of", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1565C0))
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            SelectDropdown(label = "Day", selected = targetDay, options = daysList) { targetDay = it }
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Box(modifier = Modifier.weight(1.4f)) {
+                            SelectDropdown(label = "Month", selected = targetMonth, options = monthsList) { targetMonth = it }
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        OutlinedTextField(
+                            value = targetYear,
+                            onValueChange = { targetYear = it },
+                            label = { Text("Year") },
+                            modifier = Modifier.weight(1.1f),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        IconButton(
+                            onClick = { activePicker = "target" },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFE3F2FD))
+                        ) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Open Calendar", tint = Color(0xFF1565C0))
+                        }
+                    }
+
+                    // Embedded Cascading Calendar Popup
+                    if (activePicker != null) {
+                        Spacer(modifier = Modifier.height(14.dp))
+                        val isBirth = activePicker == "birth"
+                        val selYear = (if (isBirth) birthYear else targetYear).toIntOrNull() ?: currentYear
+                        val selMonth = getMonthIndex(if (isBirth) birthMonth else targetMonth) - 1
+                        val selDay = (if (isBirth) birthDay else targetDay).toIntOrNull() ?: currentDay
+
+                        Card(
+                            backgroundColor = Color(0xFFF8FAFC),
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = 1.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (isBirth) "Select Birth Date" else "Select Target Date",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF0D47A1)
+                                    )
+                                    TextButton(onClick = { activePicker = null }) {
+                                        Text("Close", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(4.dp))
+                                FormStyleCascadingCalendar(
+                                    year = selYear,
+                                    month = selMonth,
+                                    selectedDay = selDay,
+                                    onDateSelected = { y: Int, m: Int, d: Int ->
+                                        if (isBirth) {
+                                            birthYear = y.toString()
+                                            birthMonth = getMonthName(m + 1)
+                                            birthDay = d.toString()
+                                        } else {
+                                            targetYear = y.toString()
+                                            targetMonth = getMonthName(m + 1)
+                                            targetDay = d.toString()
+                                        }
+                                        activePicker = null
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    Button(
+                        onClick = {
+                            val computed = computeAge(
+                                birthDay.toIntOrNull() ?: 1,
+                                getMonthIndex(birthMonth),
+                                birthYear.toIntOrNull() ?: 2000,
+                                targetDay.toIntOrNull() ?: currentDay,
+                                getMonthIndex(targetMonth),
+                                targetYear.toIntOrNull() ?: currentYear
+                            )
+                            if (computed != null) {
+                                ageResult = computed
+                                errorMessage = null
+                            } else {
+                                errorMessage = "Invalid date selection or birth date is after target date."
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0))
+                    ) {
+                        Text("Calculate Age", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    if (errorMessage != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(errorMessage!!, color = MaterialTheme.colors.error, fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+
+        ageResult?.let { result ->
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    elevation = 6.dp,
+                    backgroundColor = Color(0xFF0D47A1)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text("Exact Age Breakdown", color = Color(0xFF90CAF9), fontSize = 13.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${result.years} Years, ${result.months} Months, ${result.days} Days",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Divider(color = Color.White.copy(alpha = 0.2f))
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        MetricRow("Total Months", "${result.totalMonths} months")
+                        MetricRow("Total Weeks", "${result.totalWeeks} weeks")
+                        MetricRow("Total Days", "${result.totalDays} days")
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Form-Style Cascading Calendar Picker (Day -> Month -> 10-Year Range) ---
+
+enum class CalendarViewMode { DAYS, MONTHS, YEARS_10 }
+
+@Composable
+fun FormStyleCascadingCalendar(
+    year: Int,
+    month: Int, // 0-based
+    selectedDay: Int,
+    onDateSelected: (Int, Int, Int) -> Unit
+) {
+    var currentYear by remember(year) { mutableStateOf(year) }
+    var currentMonth by remember(month) { mutableStateOf(month) }
+    var viewMode by remember { mutableStateOf(CalendarViewMode.DAYS) }
+    var decadeStartYear by remember { mutableStateOf((year / 10) * 10) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {
+                    when (viewMode) {
+                        CalendarViewMode.DAYS -> {
+                            if (currentMonth == 0) {
+                                currentMonth = 11
+                                currentYear -= 1
+                            } else {
+                                currentMonth -= 1
+                            }
+                        }
+                        CalendarViewMode.MONTHS -> currentYear -= 1
+                        CalendarViewMode.YEARS_10 -> decadeStartYear -= 10
+                    }
+                },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Previous", tint = Color(0xFF1565C0))
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable {
+                        viewMode = when (viewMode) {
+                            CalendarViewMode.DAYS -> CalendarViewMode.MONTHS
+                            CalendarViewMode.MONTHS -> CalendarViewMode.YEARS_10
+                            CalendarViewMode.YEARS_10 -> CalendarViewMode.DAYS
+                        }
+                    }
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                val titleText = when (viewMode) {
+                    CalendarViewMode.DAYS -> "${getMonthName(currentMonth + 1)} $currentYear"
+                    CalendarViewMode.MONTHS -> "$currentYear"
+                    CalendarViewMode.YEARS_10 -> "$decadeStartYear - ${decadeStartYear + 9}"
+                }
+                Text(
+                    text = titleText,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Color(0xFF0D47A1)
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    when (viewMode) {
+                        CalendarViewMode.DAYS -> {
+                            if (currentMonth == 11) {
+                                currentMonth = 0
+                                currentYear += 1
+                            } else {
+                                currentMonth += 1
+                            }
+                        }
+                        CalendarViewMode.MONTHS -> currentYear += 1
+                        CalendarViewMode.YEARS_10 -> decadeStartYear += 10
+                    }
+                },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Next", tint = Color(0xFF1565C0))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        when (viewMode) {
+            CalendarViewMode.DAYS -> {
+                val calendar = Calendar.getInstance().apply { set(currentYear, currentMonth, 1) }
+                val maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+                val startDayOfWeek = (calendar.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY + 7) % 7
+
+                val weekDays = listOf("Su", "Mo", "Tu", "We", "Th", "Fr", "Sa")
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                    weekDays.forEach { dayName ->
+                        Text(
+                            text = dayName,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.width(32.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                val totalCells = startDayOfWeek + maxDays
+                val totalRows = (totalCells + 6) / 7
+
+                for (row in 0 until totalRows) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                        for (col in 0 until 7) {
+                            val cellIndex = row * 7 + col
+                            val dayNum = cellIndex - startDayOfWeek + 1
+
+                            if (cellIndex >= startDayOfWeek && dayNum <= maxDays) {
+                                val isSelected = (dayNum == selectedDay && currentYear == year && currentMonth == month)
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .padding(2.dp)
+                                        .clip(CircleShape)
+                                        .background(if (isSelected) Color(0xFF1565C0) else Color.Transparent)
+                                        .clickable {
+                                            onDateSelected(currentYear, currentMonth, dayNum)
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = dayNum.toString(),
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) Color.White else Color.DarkGray
+                                    )
+                                }
+                            } else {
+                                Spacer(modifier = Modifier.size(32.dp))
+                            }
+                        }
+                    }
+                }
+            }
+
+            CalendarViewMode.MONTHS -> {
+                val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    modifier = Modifier.height(160.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(months) { index, mName ->
+                        val isSelected = (index == currentMonth)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) Color(0xFF1565C0) else Color(0xFFE3F2FD))
+                                .clickable {
+                                    currentMonth = index
+                                    viewMode = CalendarViewMode.DAYS
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = mName,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) Color.White else Color(0xFF0D47A1)
+                            )
+                        }
+                    }
+                }
+            }
+
+            CalendarViewMode.YEARS_10 -> {
+                val yearsRange = (decadeStartYear - 1..(decadeStartYear + 10)).toList()
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    modifier = Modifier.height(160.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(yearsRange) { y ->
+                        val isSelected = (y == currentYear)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) Color(0xFF1565C0) else Color(0xFFE3F2FD))
+                                .clickable {
+                                    currentYear = y
+                                    viewMode = CalendarViewMode.MONTHS
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = y.toString(),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) Color.White else Color(0xFF0D47A1)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Tab 3: Live Forex Converter ---
 
 @Composable
 fun LiveForexConverterContent() {
@@ -542,9 +1021,10 @@ fun SelectDropdown(label: String, selected: String, options: List<String>, onSel
     Box {
         OutlinedButton(
             onClick = { expanded = true },
-            shape = RoundedCornerShape(10.dp)
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("$label: $selected", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF0D47A1))
+            Text("$label: $selected", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF0D47A1), maxLines = 1)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
@@ -572,7 +1052,50 @@ private fun MetricRow(title: String, value: String) {
     }
 }
 
-// --- Conversion Mathematics & Networking ---
+// --- Calculation Mathematics & Helpers ---
+
+fun getMonthIndex(monthName: String): Int {
+    val months = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+    return months.indexOf(monthName) + 1
+}
+
+fun getMonthName(monthNumber: Int): String {
+    val months = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+    return months.getOrElse(monthNumber - 1) { "January" }
+}
+
+fun computeAge(bDay: Int, bMonth: Int, bYear: Int, tDay: Int, tMonth: Int, tYear: Int): AgeResultData? {
+    try {
+        val birthCal = Calendar.getInstance().apply { set(bYear, bMonth - 1, bDay) }
+        val targetCal = Calendar.getInstance().apply { set(tYear, tMonth - 1, tDay) }
+
+        if (birthCal.after(targetCal)) return null
+
+        var years = tYear - bYear
+        var months = tMonth - bMonth
+        var days = tDay - bDay
+
+        if (days < 0) {
+            months -= 1
+            val prevMonthCal = (targetCal.clone() as Calendar).apply { add(Calendar.MONTH, -1) }
+            days += prevMonthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        }
+
+        if (months < 0) {
+            years -= 1
+            months += 12
+        }
+
+        val diffInMillis = targetCal.timeInMillis - birthCal.timeInMillis
+        val totalDays = (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
+        val totalWeeks = totalDays / 7
+        val totalMonths = (years * 12) + months
+
+        return AgeResultData(years, months, days, totalMonths, totalWeeks, totalDays)
+    } catch (e: Exception) {
+        return null
+    }
+}
 
 fun computeEMI(principal: String, interest: String, tenureMonths: String): EMIResultData? {
     return try {
@@ -605,7 +1128,6 @@ fun computeEMI(principal: String, interest: String, tenureMonths: String): EMIRe
 
 suspend fun fetchLiveRate(base: String, target: String): Double {
     return withContext(Dispatchers.IO) {
-        // Free open endpoint with no authentication token needed
         val url = URL("https://open.er-api.com/v6/latest/$base")
         val response = url.readText()
         val json = JSONObject(response)

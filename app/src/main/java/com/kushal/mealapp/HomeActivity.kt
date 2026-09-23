@@ -350,7 +350,7 @@ fun HomeScreen(
                             else onRequireLogin("Details") //needs edit
                         },
                         HomeButton("Calculator", Color(0xFFADD8E6)) { showCalculator = true },
-                        HomeButton("EMI Calculator", Color(0xFF03A9F4)) { showEMI = true },
+                        HomeButton("PRO Calculator", Color(0xFF03A9F4)) { showEMI = true },
 
 
                     )
