@@ -18,7 +18,7 @@
         tools:ignore="AdvertisingIdPolicy" />
 
     <application
-        android:name="com.kushal.mealapp.database.MyApp"
+        android:name="database.MyApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

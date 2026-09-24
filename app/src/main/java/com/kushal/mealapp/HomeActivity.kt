@@ -6,13 +6,11 @@ package com.kushal.mealapp
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.IntentSender
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -89,9 +87,9 @@ import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
-import com.kushal.mealapp.database.MealViewModel
-import com.kushal.mealapp.database.MealViewModelFactory
-import com.kushal.mealapp.database.MyApp
+import database.MealViewModel
+import database.MealViewModelFactory
+import database.MyApp
 import com.kushal.mealapp.ui.MealPieChart1
 import database.MealActivity
 import journal.JournalActivity

@@ -1,4 +1,5 @@
 @file:OptIn(ExperimentalFoundationApi::class)
+@file:Suppress("UsingMaterialAndMaterial3Libraries")
 
 package database
 
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Divider
@@ -48,8 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kushal.mealapp.database.Meal1
-import com.kushal.mealapp.database.MealViewModel
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogState
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -62,7 +60,7 @@ import java.util.Date
 import java.util.Locale
 
 // --- Constants for Dropdown Menu ---
-private val ALL_OPTION = "All"
+private const val ALL_OPTION = "All"
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -89,16 +87,18 @@ fun SummaryTable(viewModel: MealViewModel) {
     }
 
     // --- Filter Logic ---
-    val filteredMeals = allMeals.filter { meal ->
-        val mealDate = formatDate(meal.date)
+    val filteredMeals = remember(allMeals, fromDate, toDate, selectedName, selectedItem) {
+        allMeals.filter { meal ->
+            val mealDate = formatDate(meal.date)
 
-        val isDateInRange = (fromDate.isEmpty() || mealDate >= fromDate) &&
-                (toDate.isEmpty() || mealDate <= toDate)
+            val isDateInRange = (fromDate.isEmpty() || mealDate >= fromDate) &&
+                    (toDate.isEmpty() || mealDate <= toDate)
 
-        val isNameMatch = selectedName == ALL_OPTION || meal.name == selectedName
-        val isItemMatch = selectedItem == ALL_OPTION || meal.item == selectedItem
+            val isNameMatch = selectedName == ALL_OPTION || meal.name == selectedName
+            val isItemMatch = selectedItem == ALL_OPTION || meal.item == selectedItem
 
-        isDateInRange && isNameMatch && isItemMatch
+            isDateInRange && isNameMatch && isItemMatch
+        }
     }
 
     Surface(
@@ -160,7 +160,10 @@ fun SummaryTable(viewModel: MealViewModel) {
                             )
                         }
                     }
-                    itemsIndexed(filteredMeals) { index, meal ->
+                    itemsIndexed(
+                        items = filteredMeals,
+                        key = { _, meal -> meal.id }
+                    ) { index, meal ->
                         MealRow(index, meal)
                         if (index < filteredMeals.lastIndex) {
                             Divider(color = Color.LightGray, thickness = 0.5.dp)
@@ -383,14 +386,17 @@ fun DateDialog(
 }
 
 // --- Helper Functions (From original code) ---
-fun Date.toLocalDate(): LocalDate = this.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
 
 fun LocalDate.toDate(): Date = Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
 
-fun formatCurrency(value: Double): String = DecimalFormat("#,##0.00").format(value) // Added '0.00' for better currency display
+private val currencyFormatter = object : ThreadLocal<DecimalFormat>() {
+    override fun initialValue() = DecimalFormat("#,##0.00")
+}
 
-fun formatDate(date: Date): String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
+private val dateFormatter = object : ThreadLocal<SimpleDateFormat>() {
+    override fun initialValue() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+}
 
-fun formatMonth(date: Date): String = SimpleDateFormat("MM", Locale.getDefault()).format(date)
+fun formatCurrency(value: Double): String = currencyFormatter.get()?.format(value) ?: value.toString()
 
-fun formatYear(date: Date): String = SimpleDateFormat("yyyy", Locale.getDefault()).format(date)
+fun formatDate(date: Date): String = dateFormatter.get()?.format(date) ?: date.toString()

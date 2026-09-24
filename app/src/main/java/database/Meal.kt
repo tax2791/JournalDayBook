@@ -1,6 +1,5 @@
-package com.kushal.mealapp.database
+package database
 
-//noinspection SuspiciousImport
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.Date
@@ -39,8 +38,11 @@ data class Meal1(
 data class Member(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
+    val type: String,                       // "Group Member" or "Personal Account"
+    val accountName: String? = null,        // Specific account name (e.g., HDFC Savings)
+    val accountType: String? = null,        // "Savings", "Deposit", "Credit Card", "Cash Wallet", etc.
+    val openingBalance: Double = 0.0,       // Opening balance in ₹
     val createdDate: Long,
-    val joinDate: Date,
-    val exitDate: Date?
+    val joinDate: Date? = null,             // Applicable mainly for Group Members
+    val exitDate: Date? = null              // Applicable mainly for Group Members
 )
-

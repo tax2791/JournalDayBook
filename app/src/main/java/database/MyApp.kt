@@ -1,4 +1,4 @@
-package com.kushal.mealapp.database
+package database
 
 import android.app.Application
 import android.content.Context

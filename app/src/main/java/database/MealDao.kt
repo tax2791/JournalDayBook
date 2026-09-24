@@ -1,4 +1,4 @@
-package com.kushal.mealapp.database
+package database
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
@@ -42,8 +42,20 @@ interface MealDao {
     @Query("SELECT SUM(CASE WHEN item = 'Meal' THEN meal ELSE 0 END) FROM meal1")
     fun getTotalMeals(): LiveData<Int>
 
+    // ─── MEMBER / ACCOUNT QUERIES ───────────────────────────────────────────
+
     @Query("SELECT * FROM member")
     fun getAllMembers(): Flow<List<Member>>
+
+    // 🚀 NEW: Fetch only Group Members for meal cost calculations
+    @Query("SELECT * FROM member WHERE type = 'Group Member'")
+    fun getGroupMembers(): Flow<List<Member>>
+
+    // 🚀 NEW: Fetch only Personal Accounts (Savings, Credit Card, Cash Wallet, etc.)
+    @Query("SELECT * FROM member WHERE type = 'Personal Account'")
+    fun getPersonalAccounts(): Flow<List<Member>>
+
+    // ────────────────────────────────────────────────────────────────────────
 
     // ✅ Meal Cost Per Person = Total Meal Cost ÷ Unique Members
     @Query("SELECT CASE WHEN COUNT(DISTINCT name) > 0 THEN " +

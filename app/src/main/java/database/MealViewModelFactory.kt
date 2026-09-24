@@ -1,4 +1,4 @@
-package com.kushal.mealapp.database
+package database
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

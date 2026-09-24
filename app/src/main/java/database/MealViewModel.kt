@@ -1,4 +1,4 @@
-package com.kushal.mealapp.database
+package database
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -6,12 +6,22 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.util.Date
 
 class MealViewModel(private val mealDao: MealDao) : ViewModel() {
 
     val allMembers: Flow<List<Member>> = mealDao.getAllMembers()
 
+    // 🚀 NEW: Filtered Flows for specific UI screens
+    val groupMembers: Flow<List<Member>> = allMembers.map { members ->
+        members.filter { it.type == "Group Member" }
+    }
+
+    val personalAccounts: Flow<List<Member>> = allMembers.map { members ->
+        members.filter { it.type == "Personal Account" }
+    }
 
     // Flow for meals and deposits
     val allMeals: Flow<List<Meal>> = mealDao.getAllMeals()
@@ -21,7 +31,6 @@ class MealViewModel(private val mealDao: MealDao) : ViewModel() {
     val allMeals1: LiveData<List<Meal1>> = mealDao.getAllMeals1()
     private val numUniqueNames: LiveData<Int> = mealDao.getNumUniqueNames()
     val uniqueNames: LiveData<String> = mealDao.distinctName()
-
 
     val totalAdminCost: LiveData<Double> = mealDao.getTotalAdminCost()
     val totalMealCost: LiveData<Double> = mealDao.getTotalMealCost()
@@ -81,6 +90,31 @@ class MealViewModel(private val mealDao: MealDao) : ViewModel() {
         viewModelScope.launch { mealDao.insertMember(member) }
     }
 
+    // 🚀 Helper to quickly add a Group Member
+    fun addGroupMember(name: String, joinDate: Date, exitDate: Date?) {
+        val member = Member(
+            name = name,
+            type = "Group Member",
+            createdDate = System.currentTimeMillis(),
+            joinDate = joinDate,
+            exitDate = exitDate
+        )
+        insertMember(member)
+    }
+
+    // 🚀 Helper to quickly add a Personal Account
+    fun addPersonalAccount(accountName: String, accountType: String, openingBalance: Double) {
+        val member = Member(
+            name = accountName, // or a separate owner name if required
+            type = "Personal Account",
+            accountName = accountName,
+            accountType = accountType,
+            openingBalance = openingBalance,
+            createdDate = System.currentTimeMillis()
+        )
+        insertMember(member)
+    }
+
     // Update methods for LiveData
     private fun updateMealCostPerPerson() {
         val mealCost = totalMealCost.value ?: 0.0
@@ -99,5 +133,4 @@ class MealViewModel(private val mealDao: MealDao) : ViewModel() {
         val adminCostPerPersonValue = totalAdminCostPerPerson.value ?: 0.0
         overallTotalCostPerPerson.value = mealCostPerPersonValue + adminCostPerPersonValue
     }
-
 }

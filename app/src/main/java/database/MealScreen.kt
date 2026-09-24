@@ -1,4 +1,4 @@
-package com.kushal.mealapp
+package database
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -18,22 +18,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.kushal.mealapp.database.Meal1
-import com.kushal.mealapp.database.MealViewModel
 
 @Composable
 fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
-    // Collecting state for meals and deposits
-    // val meals by viewModel.allMeals.collectAsState(initial = emptyList())
+    // Collecting state for members/entities, meals, and deposits
+    val allMembers by viewModel.allMembers.collectAsState(initial = emptyList())
     val allMeals by viewModel.allMeals1.observeAsState(emptyList())
     val deposits by viewModel.allDeposits.collectAsState(initial = emptyList())
 
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .systemBarsPadding()   // ✅ Keeps UI below camera & status bar
+            .systemBarsPadding()   // Keeps UI below camera & status bar
             .padding(8.dp),
-        //color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier
@@ -51,13 +48,21 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
             ) {
                 item {
                     MenuItem(
-                        "Add Member",
+                        "Add Member/Account",
                         Icons.Outlined.GroupAdd,
                         "member_form",
                         navController
                     )
                 }
-                item { MenuItem("Member/Entity", Icons.Outlined.Person, "entity", navController) }
+                item {
+                    EntityMenuItem(
+                        "Member/Entity Table",
+                        Icons.Outlined.Person,
+                        "entity",
+                        navController,
+                        allMembers
+                    )
+                }
                 item {
                     MenuItem(
                         "Add Expenditure",
@@ -66,14 +71,6 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                         navController
                     )
                 }
-//                item {
-//                    MenuItem(
-//                        "Summary Table",
-//                        Icons.Outlined.GridOn,
-//                        "summary_table",
-//                        navController
-//                    )
-//                }
                 item {
                     SummaryMenuItem(
                         "Summary",
@@ -85,7 +82,6 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                 }
                 item { MenuItem("MealPieChart", Icons.Outlined.InsertChart, "chart", navController) }
                 item { MenuItem("Listwise", Icons.Outlined.InsertChart, "listwise", navController) }
-
             }
 
             // Disclaimer
@@ -122,6 +118,43 @@ fun MenuItem(title: String, icon: ImageVector, route: String, navController: Nav
 }
 
 /**
+ * Entity Table Menu Item with Data Check
+ */
+@Composable
+fun EntityMenuItem(
+    title: String,
+    icon: ImageVector,
+    route: String,
+    navController: NavHostController,
+    allMembers: List<Member>
+) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .clickable {
+                if (allMembers.isNotEmpty()) {
+                    navController.navigate(route)
+                } else {
+                    Toast.makeText(context, "No members or personal accounts available!", Toast.LENGTH_SHORT).show()
+                }
+            },
+        elevation = 4.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(imageVector = icon, contentDescription = title, modifier = Modifier.size(40.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(title, style = MaterialTheme.typography.body1)
+        }
+    }
+}
+
+/**
  * Summary Menu Item with Data Check
  */
 @Composable
@@ -130,8 +163,7 @@ fun SummaryMenuItem(
     icon: ImageVector,
     route: String,
     navController: NavHostController,
-    allMeals: List<Meal1>,
-    //deposits: List<Deposit>
+    allMeals: List<Meal1>
 ) {
     val context = LocalContext.current
 

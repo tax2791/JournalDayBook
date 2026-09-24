@@ -7,15 +7,6 @@ import androidx.activity.viewModels
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.kushal.mealapp.MealScreen
-import com.kushal.mealapp.database.AddMealForm
-import com.kushal.mealapp.database.Listwise
-import com.kushal.mealapp.database.MealTableScreen
-import com.kushal.mealapp.database.MealViewModel
-import com.kushal.mealapp.database.MealViewModelFactory
-import com.kushal.mealapp.database.MemberForm
-import com.kushal.mealapp.database.MyApp
-import com.kushal.mealapp.ui.MealPieChart
 
 class MealActivity : ComponentActivity() {
 
@@ -23,7 +14,7 @@ class MealActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Get MealDao instance from the database
-        val mealDao = MyApp.Companion.getDatabase(this).mealDao()
+        val mealDao = MyApp.getDatabase(this).mealDao()
 
         // Use ViewModelProvider factory
         val mealViewModel: MealViewModel by viewModels {

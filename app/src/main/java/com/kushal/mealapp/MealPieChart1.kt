@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kushal.mealapp.database.MealViewModel
+import database.MealViewModel
 
 @Composable
 fun MealPieChart1(viewModel: MealViewModel = viewModel()) {
