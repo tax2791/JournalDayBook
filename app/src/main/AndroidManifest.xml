@@ -77,10 +77,6 @@
             android:exported="true" />
 
 
-
-        <activity android:name="journal.JournalActivity" />
-
-
         <activity
             android:name=".GoogleSignInActivity"
             android:exported="false" />
@@ -89,13 +85,6 @@
             android:name=".ChatActivity"
             android:exported="false" />
 
-        <activity
-            android:name="stock.StockActivity"
-            android:exported="false" />
-
-        <activity
-            android:name="stock.StockReportActivity"
-            android:exported="false" />
 
         <activity
             android:name="database.MealActivity"

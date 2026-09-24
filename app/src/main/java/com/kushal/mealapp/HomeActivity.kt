@@ -92,11 +92,8 @@ import database.MealViewModelFactory
 import database.MyApp
 import com.kushal.mealapp.ui.MealPieChart1
 import database.MealActivity
-import journal.JournalActivity
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import stock.StockActivity
-import stock.StockReportActivity
 import users.UserDetailsActivity
 
 @Suppress("DEPRECATION")
@@ -335,18 +332,7 @@ fun HomeScreen(
                             if (isLoggedIn) onNavigate(ChatActivity::class.java)
                             else onRequireLogin("ChatActivity")
                         },
-                        HomeButton("Journal Entry", Color.Cyan) {
-                            if (isLoggedIn) onNavigate(JournalActivity::class.java)
-                            else onRequireLogin("Details")
-                        },
-                        HomeButton("Stock Management", Color.LightGray) {
-                            if (isLoggedIn) onNavigate(StockActivity::class.java)
-                            else onRequireLogin("Details")
-                        },
-                        HomeButton("Stock Report", Color.Magenta) {
-                            if (isLoggedIn) onNavigate(StockReportActivity::class.java)
-                            else onRequireLogin("Details") //needs edit
-                        },
+
                         HomeButton("Calculator", Color(0xFFADD8E6)) { showCalculator = true },
                         HomeButton("PRO Calculator", Color(0xFF03A9F4)) { showEMI = true },
 
