@@ -494,7 +494,6 @@ fun SignupForm(onSignupSuccess: () -> Unit = {}) {
         "Group",
         "Institution",
         "Shop",
-        "Establishment",
         "Other"
     )
 
