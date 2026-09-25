@@ -65,7 +65,7 @@ android {
         }
     }
 
-    buildToolsVersion = "35.0.0"
+    buildToolsVersion = "36.0.0"
 }
 
 configurations.all {
