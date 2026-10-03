@@ -122,10 +122,18 @@ class ProBillingActivity : ComponentActivity(), PurchasesUpdatedListener {
     }
 
     private fun queryProductDetailsFromPlayConsole() {
-        // 1. Query Subscription Products (pro_monthly, pro_yearly)
+        // 1. Query Subscription Products (jdb-pro-monthly-01, jdb-pro-yearly-01, pro_monthly, pro_yearly)
         val subsList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("jdb-pro-monthly-01")
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId("pro_monthly")
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("jdb-pro-yearly-12")
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build(),
             QueryProductDetailsParams.Product.newBuilder()
@@ -150,8 +158,12 @@ class ProBillingActivity : ComponentActivity(), PurchasesUpdatedListener {
             }
         }
 
-        // 2. Query In-App One-Time Products (pro_lifetime)
+        // 2. Query In-App One-Time Products (jdb-pro-lifetime-01, pro_lifetime)
         val inAppList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("jdb-pro-lifetime-01")
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId("pro_lifetime")
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -205,15 +217,18 @@ class ProBillingActivity : ComponentActivity(), PurchasesUpdatedListener {
         }
     }
 
-    private fun launchPlayStoreBilling(plan: BillingPlan) {
-        val productId = when (plan) {
-            BillingPlan.MONTHLY -> "pro_monthly"
-            BillingPlan.YEARLY -> "pro_yearly"
-            BillingPlan.LIFETIME -> "pro_lifetime"
+    private fun findProductDetails(plan: BillingPlan): ProductDetails? {
+        val candidateIds = when (plan) {
+            BillingPlan.MONTHLY -> listOf("jdb-pro-monthly-01", "pro_monthly", "jdb-pro-monthly")
+            BillingPlan.YEARLY -> listOf("jdb-pro-yearly-01", "pro_yearly", "jdb-pro-yearly")
+            BillingPlan.LIFETIME -> listOf("jdb-pro-lifetime-01", "pro_lifetime", "pro_lifetime_purchase", "jdb-pro-lifetime")
         }
 
-        val productDetails = playConsoleProducts.value[productId]
-            ?: playConsoleProducts.value["pro_lifetime_purchase"]
+        return candidateIds.firstNotNullOfOrNull { id -> playConsoleProducts.value[id] }
+    }
+
+    private fun launchPlayStoreBilling(plan: BillingPlan) {
+        val productDetails = findProductDetails(plan)
 
         if (productDetails != null) {
             // Find offerToken from backwards-compatible base plan (where offerId is null) or first offer
@@ -241,10 +256,15 @@ class ProBillingActivity : ComponentActivity(), PurchasesUpdatedListener {
                 Toast.makeText(this, "Play Store Billing launch failed: ${result.debugMessage}", Toast.LENGTH_LONG).show()
             }
         } else {
-            Log.w("PlayBilling", "Product details for $productId not found on Play Console.")
+            val requestedId = when (plan) {
+                BillingPlan.MONTHLY -> "jdb-pro-monthly-01"
+                BillingPlan.YEARLY -> "jdb-pro-yearly-01"
+                BillingPlan.LIFETIME -> "jdb-pro-lifetime-01"
+            }
+            Log.w("PlayBilling", "Product details for $requestedId not found on Play Console.")
             Toast.makeText(
                 this,
-                "Product '$productId' not found on Play Console. Ensure product is published & active.",
+                "Product '$requestedId' not found on Play Console. Ensure product is published & active.",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -607,14 +627,17 @@ fun ProBillingScreen(
 
             BillingPlan.values().forEach { plan ->
                 val isSelected = selectedPlan == plan
-                val productId = when (plan) {
-                    BillingPlan.MONTHLY -> "pro_monthly"
-                    BillingPlan.YEARLY -> "pro_yearly"
-                    BillingPlan.LIFETIME -> "pro_lifetime"
+                val candidateIds = when (plan) {
+                    BillingPlan.MONTHLY -> listOf("jdb-pro-monthly-01", "pro_monthly", "jdb-pro-monthly")
+                    BillingPlan.YEARLY -> listOf("jdb-pro-yearly-01", "pro_yearly", "jdb-pro-yearly")
+                    BillingPlan.LIFETIME -> listOf("jdb-pro-lifetime-01", "pro_lifetime", "pro_lifetime_purchase", "jdb-pro-lifetime")
                 }
-                val playDetails = playConsoleProducts[productId]
+                val playDetails = candidateIds.firstNotNullOfOrNull { id -> playConsoleProducts[id] }
+                val basePlanOffer = playDetails?.subscriptionOfferDetails?.firstOrNull { it.offerId == null }
+                    ?: playDetails?.subscriptionOfferDetails?.firstOrNull()
+
                 val displayPrice = playDetails?.oneTimePurchaseOfferDetails?.formattedPrice
-                    ?: playDetails?.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
+                    ?: basePlanOffer?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
                     ?: plan.price
 
                 OutlinedCard(
