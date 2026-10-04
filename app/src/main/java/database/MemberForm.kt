@@ -44,6 +44,15 @@ fun MemberForm(
     val allMembers by viewModel.allMembers.collectAsState(initial = emptyList())
     var showProDialog by remember { mutableStateOf(false) }
 
+    val sharedPrefs = remember(context) { context.getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE) }
+    val isProUser = sharedPrefs.getBoolean("isProVersion", false)
+
+    LaunchedEffect(allMembers.size) {
+        if (!isProUser && allMembers.size >= 10) {
+            showProDialog = true
+        }
+    }
+
     // Form mode: "Group Member" or "Personal Account"
     var entryType by remember { mutableStateOf("Group Member") }
     val entryTypes = listOf("Group Member", "Personal Account")
@@ -213,6 +222,59 @@ fun MemberForm(
                             .padding(18.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Limit Warning Banner Card
+                        if (!isProUser && allMembers.size >= 10) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        val intent = Intent(context, com.kushal.mealapp.ProBillingActivity::class.java)
+                                        context.startActivity(intent)
+                                    },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("👑", fontSize = 26.sp)
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = "Free Limit Reached (10/10)",
+                                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                                color = MaterialTheme.colorScheme.onErrorContainer
+                                            )
+                                            Text(
+                                                text = "Upgrade to PRO for unlimited group members & personal accounts.",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                                            )
+                                        }
+                                    }
+                                    Button(
+                                        onClick = {
+                                            val intent = Intent(context, com.kushal.mealapp.ProBillingActivity::class.java)
+                                            context.startActivity(intent)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
+                                        Text("Upgrade", fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
                         // 1. Name Input
                         OutlinedTextField(
                             value = name,
@@ -310,12 +372,11 @@ fun MemberForm(
 
                         // Submit Button
                         val isFormValid = name.isNotBlank() && joinDate != null
-                        val sharedPrefs = remember(context) { context.getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE) }
-                        val isProUser = sharedPrefs.getBoolean("isProVersion", false)
+                        val isLimitReached = !isProUser && allMembers.size >= 10
 
                         Button(
                             onClick = {
-                                if (!isProUser && allMembers.size >= 10) {
+                                if (isLimitReached) {
                                     showProDialog = true
                                     return@Button
                                 }
@@ -353,16 +414,18 @@ fun MemberForm(
                                 DriveBackupManager.syncAutomatically(context)
                                 onFormSubmitted()
                             },
-                            enabled = isFormValid,
+                            enabled = if (isLimitReached) true else isFormValid,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isLimitReached) MaterialTheme.colorScheme.error else accentColor
+                            )
                         ) {
                             Text(
-                                text = if (entryType == "Group Member") "Save Group Member" else "Save Personal Account",
-                                fontSize = 16.sp,
+                                text = if (isLimitReached) "👑 Upgrade to PRO to Add Members" else if (entryType == "Group Member") "Save Group Member" else "Save Personal Account",
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )

@@ -87,12 +87,29 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(
-                                "Journal DayBook",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    "Journal DayBook",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                if (isProUser) {
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = Color(0xFFFFD700)
+                                    ) {
+                                        Text(
+                                            "🌟 PRO",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF3E2723),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
                             Text(
                                 "Offline Expense Manager",
                                 fontSize = 12.sp,
@@ -276,7 +293,57 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    actions = {
+                        if (isProUser) {
+                            Surface(
+                                modifier = Modifier
+                                    .padding(end = 12.dp)
+                                    .clickable {
+                                        Toast.makeText(context, "🌟 PRO MEMBER Active: Unlimited Members & Features Unlocked", Toast.LENGTH_SHORT).show()
+                                    },
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFFFFD700)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("🌟 ", fontSize = 13.sp)
+                                    Text(
+                                        "PRO MEMBER",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF3E2723)
+                                    )
+                                }
+                            }
+                        } else {
+                            Surface(
+                                modifier = Modifier
+                                    .padding(end = 12.dp)
+                                    .clickable {
+                                        val intent = Intent(context, com.kushal.mealapp.ProBillingActivity::class.java)
+                                        context.startActivity(intent)
+                                    },
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFF1565C0)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("👑 ", fontSize = 13.sp)
+                                    Text(
+                                        "PRO",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
                 )
             },
             bottomBar = {
