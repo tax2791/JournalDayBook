@@ -106,6 +106,20 @@ class MealViewModel(private val mealDao: MealDao) : ViewModel() {
         viewModelScope.launch { mealDao.updateMember(member) }
     }
 
+    fun updateMember(oldName: String, updatedMember: Member) {
+        viewModelScope.launch {
+            mealDao.updateMember(updatedMember)
+            val newName = updatedMember.name
+            if (oldName.isNotBlank() && newName.isNotBlank() && oldName != newName) {
+                mealDao.updateMemberNameInMeal1(oldName, newName)
+                mealDao.updateMemberNameInMeal(oldName, newName)
+                mealDao.updateMemberNameInDeposit(oldName, newName)
+                mealDao.updatePartyNameInLoans(oldName, newName, "")
+                mealDao.updatePartyNameInRepayments(oldName, newName)
+            }
+        }
+    }
+
     fun deleteMember(member: Member) {
         viewModelScope.launch {
             mealDao.deleteMeals1ByMemberName(member.name)

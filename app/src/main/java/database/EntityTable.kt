@@ -228,8 +228,8 @@ fun EntityTable(viewModel: MealViewModel) {
                 member = member,
                 onDismiss = { memberToEdit = null },
                 onSave = { updatedMember ->
-                    viewModel.updateMember(updatedMember)
-                    Toast.makeText(context, "Updated '${member.name}' successfully ✅", Toast.LENGTH_SHORT).show()
+                    viewModel.updateMember(member.name, updatedMember)
+                    Toast.makeText(context, "Updated '${updatedMember.name}' successfully ✅", Toast.LENGTH_SHORT).show()
                     DriveBackupManager.syncAutomatically(context)
                     memberToEdit = null
                 }

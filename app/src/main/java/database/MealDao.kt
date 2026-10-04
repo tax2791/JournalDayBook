@@ -43,6 +43,15 @@ interface MealDao {
     @Query("DELETE FROM deposit WHERE name = :memberName")
     suspend fun deleteDepositsByMemberName(memberName: String)
 
+    @Query("UPDATE meal1 SET name = :newName WHERE name = :oldName")
+    suspend fun updateMemberNameInMeal1(oldName: String, newName: String)
+
+    @Query("UPDATE meal SET name = :newName WHERE name = :oldName")
+    suspend fun updateMemberNameInMeal(oldName: String, newName: String)
+
+    @Query("UPDATE deposit SET name = :newName WHERE name = :oldName")
+    suspend fun updateMemberNameInDeposit(oldName: String, newName: String)
+
     @Query("SELECT * FROM meal ORDER BY date DESC")
     fun getAllMeals(): Flow<List<Meal>>
 
