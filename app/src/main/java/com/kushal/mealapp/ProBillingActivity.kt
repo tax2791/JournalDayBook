@@ -871,14 +871,23 @@ fun ProBillingScreen(
                         Button(
                             onClick = {
                                 val code = promoCodeInput.trim().uppercase()
-                                val validCodes = listOf("PRO2025", "FREEPRO", "VIP", "MEALPRO", "ADMINPRO")
-                                if (code in validCodes || code.startsWith("PRO")) {
+                                val validCodes = listOf("JDBPRO2026", "JDBVIP2026")
+                                if (code in validCodes) {
                                     sharedPrefs.edit { putBoolean("isProVersion", true) }
                                     isProUser = true
                                     showPromoDialog = false
-                                    Toast.makeText(context, "Code applied! PRO activated 🌟", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "Promo Code Verified! PRO Activated 🌟", Toast.LENGTH_LONG).show()
+                                } else if (code.isNotBlank()) {
+                                    // Launch Google Play Store Official Promo Code Redemption Page
+                                    try {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/redeem?code=$code"))
+                                        context.startActivity(intent)
+                                        showPromoDialog = false
+                                    } catch (_: Exception) {
+                                        Toast.makeText(context, "Invalid or expired promo code.", Toast.LENGTH_LONG).show()
+                                    }
                                 } else {
-                                    Toast.makeText(context, "Invalid code. Try 'PRO2025' or 'FREEPRO'", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "Please enter a valid promo code.", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         ) {
