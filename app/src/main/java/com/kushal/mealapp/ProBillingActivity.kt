@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,8 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
@@ -700,11 +706,86 @@ fun ProBillingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            var isAgreedToTerms by remember { mutableStateOf(false) }
+
+            // Privacy Policy & Terms Agreement Card
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (!isAgreedToTerms) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = isAgreedToTerms,
+                        onCheckedChange = { isAgreedToTerms = it }
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    val annotatedString = buildAnnotatedString {
+                        append("I agree to the ")
+
+                        pushStringAnnotation(tag = "PRIVACY", annotation = "https://legalcount.in/meal/privacy.html")
+                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)) {
+                            append("Privacy Policy")
+                        }
+                        pop()
+
+                        append(" & ")
+
+                        pushStringAnnotation(tag = "TERMS", annotation = "https://legalcount.in/meal/terms.html")
+                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)) {
+                            append("Terms and Conditions")
+                        }
+                        pop()
+                        append(".")
+                    }
+
+                    ClickableText(
+                        text = annotatedString,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        onClick = { offset ->
+                            annotatedString.getStringAnnotations(offset, offset).firstOrNull()?.let { annotation ->
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Cannot open browser link: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Play Store Purchase Action Button
             Button(
-                onClick = { onSubscribeClick(selectedPlan) },
+                onClick = {
+                    if (!isAgreedToTerms) {
+                        Toast.makeText(
+                            context,
+                            "Please check the box to agree to the Privacy Policy & Terms before purchasing.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@Button
+                    }
+                    onSubscribeClick(selectedPlan)
+                },
                 enabled = !isSubmittingTransaction,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
