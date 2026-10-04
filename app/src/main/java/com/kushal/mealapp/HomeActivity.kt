@@ -265,7 +265,12 @@ data class HomeButton(
 
 @Composable
 fun BannerAdView() {
-    LocalContext.current
+    val context = LocalContext.current
+    val sharedPrefs = remember(context) { context.getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE) }
+    val isProUser = sharedPrefs.getBoolean("isProVersion", false)
+
+    // PRO members get a 100% ad-free experience across the entire app
+    if (isProUser) return
 
     Box(
         modifier = Modifier
