@@ -1712,7 +1712,7 @@ fun HelpAndSuggestionCard() {
                 Text("✉️", fontSize = 13.sp)
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Send Email to kushal.dan@gmail.com",
+                    text = "Send Email to Journal DayBook",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1565C0)
