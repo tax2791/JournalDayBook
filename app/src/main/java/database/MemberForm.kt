@@ -2,6 +2,8 @@ package database
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
+import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -308,10 +310,12 @@ fun MemberForm(
 
                         // Submit Button
                         val isFormValid = name.isNotBlank() && joinDate != null
+                        val sharedPrefs = remember(context) { context.getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE) }
+                        val isProUser = sharedPrefs.getBoolean("isProVersion", false)
 
                         Button(
                             onClick = {
-                                if (allMembers.size >= 20) {
+                                if (!isProUser && allMembers.size >= 10) {
                                     showProDialog = true
                                     return@Button
                                 }
@@ -386,7 +390,7 @@ fun MemberForm(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "Free version is limited to 20 members / accounts (${allMembers.size}/20 created).",
+                            text = "Free version is limited to 10 members / accounts (${allMembers.size}/10 created).",
                             fontSize = 14.sp,
                             color = Color.DarkGray
                         )
@@ -402,7 +406,8 @@ fun MemberForm(
                     Button(
                         onClick = {
                             showProDialog = false
-                            Toast.makeText(context, "Contact support for PRO Version upgrade", Toast.LENGTH_LONG).show()
+                            val intent = Intent(context, com.kushal.mealapp.ProBillingActivity::class.java)
+                            context.startActivity(intent)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
                         shape = RoundedCornerShape(8.dp)

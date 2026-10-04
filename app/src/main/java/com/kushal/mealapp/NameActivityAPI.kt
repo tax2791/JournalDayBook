@@ -759,6 +759,7 @@ fun AddMemberTab(
 // -----------------------------
 // TAB 2: Monthly Active Stats
 // -----------------------------
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthlyStatsTab(monthlyStats: Map<YearMonth, Int>) {
     if (monthlyStats.isEmpty()) {
@@ -773,11 +774,28 @@ fun MonthlyStatsTab(monthlyStats: Map<YearMonth, Int>) {
             )
         }
     } else {
+        // Extract available years sorted descending (2026, 2025, 2024...)
+        val availableYears = remember(monthlyStats) {
+            monthlyStats.keys.map { it.year }.distinct().sortedDescending()
+        }
+
+        // Default selected year: latest year available
+        var selectedYear by remember(availableYears) {
+            mutableIntStateOf(availableYears.firstOrNull() ?: Calendar.getInstance().get(Calendar.YEAR))
+        }
+
+        // Filter stats by selected year
+        val filteredStats = remember(monthlyStats, selectedYear) {
+            monthlyStats.filter { (ym, _) -> ym.year == selectedYear }
+                .entries.sortedByDescending { it.key }
+        }
+
         Column(modifier = Modifier.fillMaxSize()) {
+            // Header Banner
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                    .padding(bottom = 12.dp),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.elevatedCardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -786,7 +804,7 @@ fun MonthlyStatsTab(monthlyStats: Map<YearMonth, Int>) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
+                        .padding(18.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -797,7 +815,7 @@ fun MonthlyStatsTab(monthlyStats: Map<YearMonth, Int>) {
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "Active members tracked by month",
+                            text = "Active members for Year $selectedYear",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         )
@@ -811,42 +829,93 @@ fun MonthlyStatsTab(monthlyStats: Map<YearMonth, Int>) {
                 }
             }
 
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(monthlyStats.entries.toList()) { (month, count) ->
-                    OutlinedCard(
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.CalendarMonth,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "${month.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${month.year}",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                                )
-                            }
+            // Year Selector Chips
+            Text(
+                text = "Select Year:",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
 
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                availableYears.forEach { year ->
+                    val isSelected = selectedYear == year
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedYear = year },
+                        label = {
+                            Text(
+                                text = "$year",
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        leadingIcon = if (isSelected) {
+                            { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                        } else null,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            }
+
+            if (filteredStats.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No records found for year $selectedYear",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(filteredStats) { (month, count) ->
+                        OutlinedCard(
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "$count Active",
-                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarMonth,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = "${month.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${month.year}",
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                    )
+                                }
+
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer
+                                ) {
+                                    Text(
+                                        text = "$count Active",
+                                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
+                                }
                             }
                         }
                     }

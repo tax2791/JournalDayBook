@@ -5,6 +5,7 @@ package com.kushal.mealapp
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -1526,6 +1527,9 @@ fun HomeScreen(
                                 )
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        HelpAndSuggestionCard()
                     }
                 } else {
                     // Offline Section
@@ -1618,6 +1622,9 @@ fun HomeScreen(
                                 }
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        HelpAndSuggestionCard()
                     }
                 }
             }
@@ -1627,4 +1634,90 @@ fun HomeScreen(
     GlobalCalculatorOverlay()
     if (showEMI) EMICalculatorPage(onBack = { showEMI = false })
     if (showForgotDialog) ForgotPassword(onDismiss = { showForgotDialog = false })
+}
+
+@Composable
+fun HelpAndSuggestionCard() {
+    val context = LocalContext.current
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable {
+                try {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:kushal.dan@gmail.com")
+                        putExtra(Intent.EXTRA_SUBJECT, "Journal DayBook - Help & Suggestion")
+                        putExtra(Intent.EXTRA_TEXT, "Hello Kushal,\n\nI have the following query / suggestion regarding Journal DayBook:\n\n")
+                    }
+                    context.startActivity(Intent.createChooser(intent, "Send Email via..."))
+                } catch (e: Exception) {
+                    Toast.makeText(context, "No email client found on device", Toast.LENGTH_SHORT).show()
+                }
+            }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Line 1: Header Title & Support Badge
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("💡", fontSize = 18.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Help & Suggestions",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = Color(0xFF002B49)
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFE3F2FD)
+                ) {
+                    Text(
+                        text = "Support",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1976D2),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            // Line 2: Subtitle Description
+            Text(
+                text = "Have questions, feedback, or feature ideas? Send your thoughts directly.",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                maxLines = 1
+            )
+
+            // Line 3: Direct Email Action
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 2.dp)
+            ) {
+                Text("✉️", fontSize = 13.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Send Email to kushal.dan@gmail.com",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1565C0)
+                )
+            }
+        }
+    }
 }

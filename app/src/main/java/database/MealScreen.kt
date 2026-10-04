@@ -1,5 +1,6 @@
 package database
 
+import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -45,9 +46,11 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
     val allMeals by viewModel.allMeals1.observeAsState(emptyList())
 
     var showProLimitDialog by remember { mutableStateOf(false) }
+    val sharedPrefs = remember(context) { context.getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE) }
+    val isProUser = sharedPrefs.getBoolean("isProVersion", false)
 
     fun onAddMemberClicked() {
-        if (allMembers.size >= 20) {
+        if (!isProUser && allMembers.size >= 10) {
             showProLimitDialog = true
         } else {
             navController.navigate("member_form")
@@ -417,7 +420,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
             }
         }
 
-        // PRO Version Limit Dialog (Free Limit: 20 Members / Accounts)
+        // PRO Version Limit Dialog (Free Limit: 10 Members / Accounts)
         if (showProLimitDialog) {
             AlertDialog(
                 onDismissRequest = { showProLimitDialog = false },
@@ -435,7 +438,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "You have reached the free version limit of 20 members / accounts (${allMembers.size}/20 used).",
+                            text = "Free version limit of 10 members / accounts reached (${allMembers.size}/10 created).",
                             fontSize = 14.sp,
                             color = Color.DarkGray
                         )
@@ -451,7 +454,8 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     Button(
                         onClick = {
                             showProLimitDialog = false
-                            Toast.makeText(context, "Contact support for PRO Version upgrade", Toast.LENGTH_LONG).show()
+                            val intent = Intent(context, com.kushal.mealapp.ProBillingActivity::class.java)
+                            context.startActivity(intent)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
                         shape = RoundedCornerShape(8.dp)
