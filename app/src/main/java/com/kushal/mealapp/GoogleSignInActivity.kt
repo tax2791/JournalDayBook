@@ -59,9 +59,11 @@ class GoogleSignInActivity : ComponentActivity() {
             try {
                 val account = task.getResult(Exception::class.java)
                 if (account != null) {
+                    userState = account
                     firebaseAuthWithGoogle(account.idToken!!, firebaseAuth) {
-                        userState = GoogleSignIn.getLastSignedInAccount(context)
+                        userState = GoogleSignIn.getLastSignedInAccount(context) ?: account
                         Log.d("SignIn", "Firebase sign-in completed for ${userState?.displayName}")
+                        Toast.makeText(context, "Logged in as ${userState?.displayName ?: account.displayName} ✅", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
@@ -83,6 +85,7 @@ class GoogleSignInActivity : ComponentActivity() {
         MaterialTheme {
             Surface {
                 GoogleSignInScreenContent(
+                    account = userState,
                     signIn = {
                         val signInIntent = googleSignInClient.signInIntent
                         launcher.launch(signInIntent)

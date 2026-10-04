@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun GoogleSignInScreenContent(
+    account: GoogleSignInAccount? = null,
     signIn: () -> Unit,
     signOut: () -> Unit,
     authLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>? = null
@@ -73,8 +74,8 @@ fun GoogleSignInScreenContent(
     var isBackingUp by remember { mutableStateOf(false) }
     var autoSyncEnabled by remember { mutableStateOf(DriveBackupManager.isAutoSyncEnabled(context)) }
 
-    val account: GoogleSignInAccount? = GoogleSignIn.getLastSignedInAccount(context)
-    val userName = account?.displayName ?: "Guest"
+    val activeAccount = account ?: GoogleSignIn.getLastSignedInAccount(context)
+    val userName = activeAccount?.displayName ?: "Guest"
 
     val surfaceColor = MaterialTheme.colorScheme.surface
     val primary = MaterialTheme.colorScheme.primary
@@ -107,7 +108,7 @@ fun GoogleSignInScreenContent(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = if (account != null) Icons.Default.AccountCircle else Icons.Default.Person,
+                        imageVector = if (activeAccount != null) Icons.Default.AccountCircle else Icons.Default.Person,
                         contentDescription = "User Icon",
                         tint = primary,
                         modifier = Modifier.size(60.dp)
@@ -120,14 +121,14 @@ fun GoogleSignInScreenContent(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = if (account != null) "Your Google account is connected" else "Please sign in to sync your data",
+                        text = if (activeAccount != null) "Your Google account is connected" else "Please sign in to sync your data",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
                 }
             }
 
-            Crossfade(targetState = account != null) { isSignedIn ->
+            Crossfade(targetState = activeAccount != null) { isSignedIn ->
                 if (!isSignedIn) {
                     // SIGN IN BUTTON
                     Button(
@@ -209,7 +210,7 @@ fun GoogleSignInScreenContent(
                                 scope.launch {
                                     isBackingUp = true
                                     try {
-                                        DriveBackupManager.uploadDatabaseToDrive(account!!, context)
+                                        DriveBackupManager.uploadDatabaseToDrive(activeAccount!!, context)
                                         val current = System.currentTimeMillis()
                                         prefs.edit {
                                             putLong("last_synced_time", current)
@@ -252,7 +253,7 @@ fun GoogleSignInScreenContent(
                                 scope.launch {
                                     restoring = true
                                     try {
-                                        val restored = DriveBackupManager.restoreDatabaseFromDrive(account!!, context)
+                                        val restored = DriveBackupManager.restoreDatabaseFromDrive(activeAccount!!, context)
                                         if (restored) {
                                             Toast.makeText(context, "Restore completed 🔄 Restarting...", Toast.LENGTH_SHORT).show()
                                             val intent = Intent(context, HomeActivity::class.java).apply {
