@@ -185,9 +185,21 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp)
                 )
 
-                // 5. Member / Account Report
+                // 5a. Group Report
                 NavigationDrawerItem(
-                    label = { Text("Report", fontWeight = FontWeight.SemiBold) },
+                    label = { Text("Group Report", fontWeight = FontWeight.SemiBold) },
+                    icon = { Icon(Icons.Outlined.Group, contentDescription = null, tint = Color(0xFF1565C0)) },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate("group_report")
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp)
+                )
+
+                // 5b. Personal Account Report
+                NavigationDrawerItem(
+                    label = { Text("Personal Account Report", fontWeight = FontWeight.SemiBold) },
                     icon = { Icon(Icons.Outlined.Assessment, contentDescription = null, tint = Color(0xFF388E3C)) },
                     selected = false,
                     onClick = {
@@ -420,6 +432,15 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                                     Toast.makeText(context, "No data available!", Toast.LENGTH_SHORT).show()
                                 }
                             }
+                        )
+                    }
+                    item {
+                        ProfessionalMenuItem(
+                            title = "Group Report",
+                            icon = Icons.Outlined.Group,
+                            badgeColor = Color(0xFF1565C0),
+                            bgColor = Color(0xFFE3F2FD),
+                            onClick = { navController.navigate("group_report") }
                         )
                     }
                     item {

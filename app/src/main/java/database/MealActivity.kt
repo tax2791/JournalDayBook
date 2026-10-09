@@ -77,6 +77,10 @@ class MealActivity : ComponentActivity() {
                     composable("member_report") {
                         MemberReportScreen(viewModel = mealViewModel)
                     }
+
+                    composable("group_report") {
+                        GroupReportScreen(viewModel = mealViewModel)
+                    }
                 }
 
                 AutoSyncFlashOverlay()

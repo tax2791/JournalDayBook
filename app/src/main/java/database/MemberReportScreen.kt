@@ -136,12 +136,13 @@ fun MemberReportScreen(viewModel: MealViewModel) {
         }.time
     }
 
-    // Active members based on joinDate and exitDate
+    // Active members filtered specifically for Personal Accounts
     val activeMembers = remember(allMembers, fromDateObj, toDateObj) {
         allMembers.filter { member ->
             val jDate = member.joinDate
             val eDate = member.exitDate
-            (jDate == null || jDate.time <= toDateObj.time) && (eDate == null || eDate.time >= fromDateObj.time)
+            val isDateActive = (jDate == null || jDate.time <= toDateObj.time) && (eDate == null || eDate.time >= fromDateObj.time)
+            isDateActive && member.type == "Personal Account"
         }
     }
 
@@ -181,7 +182,7 @@ fun MemberReportScreen(viewModel: MealViewModel) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "📊 Report",
+                    text = "💳 Personal Account Report",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -262,6 +263,7 @@ fun MemberReportScreen(viewModel: MealViewModel) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
+
                     // Date Filter Selection
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -491,6 +493,12 @@ fun TableView(
                     MaterialTheme.colorScheme.surface
                 }
 
+                val displayName = if (!member.accountName.isNullOrBlank() && member.accountName != member.name) {
+                    "${member.name} (${member.accountName})"
+                } else {
+                    member.name
+                }
+
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier
@@ -499,7 +507,7 @@ fun TableView(
                             .height(IntrinsicSize.Min)
                     ) {
                         ReportTableCell(
-                            text = "${member.name} ${if (isExpanded) "▲" else "▼"}",
+                            text = "$displayName ${if (isExpanded) "▲" else "▼"}",
                             width = nameWidth,
                             textColor = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
@@ -621,6 +629,35 @@ fun VerticalCardView(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
+                            if (!member.accountName.isNullOrBlank() && member.accountName != member.name) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.secondaryContainer
+                                ) {
+                                    Text(
+                                        text = member.accountName,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            } else if (!member.accountType.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.tertiaryContainer
+                                ) {
+                                    Text(
+                                        text = member.accountType,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                }
+                            }
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = if (isExpanded) "▲ Hide" else "▼ View",
