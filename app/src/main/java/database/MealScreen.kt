@@ -409,7 +409,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     }
                     item {
                         ProfessionalMenuItem(
-                            title = "Summary Table",
+                            title = "Summary Expenses",
                             icon = Icons.Outlined.BarChart,
                             badgeColor = Color(0xFF7B1FA2),
                             bgColor = Color(0xFFF3E5F5),
@@ -424,7 +424,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     }
                     item {
                         ProfessionalMenuItem(
-                            title = "Member / Account Report",
+                            title = "Report",
                             icon = Icons.Outlined.Assessment,
                             badgeColor = Color(0xFF388E3C),
                             bgColor = Color(0xFFE8F5E9),
@@ -433,7 +433,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     }
                     item {
                         ProfessionalMenuItem(
-                            title = "Expense Pie Chart",
+                            title = "Pie Chart",
                             icon = Icons.Outlined.InsertChart,
                             badgeColor = Color(0xFFD81B60),
                             bgColor = Color(0xFFFCE4EC),
@@ -442,7 +442,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     }
                     item {
                         ProfessionalMenuItem(
-                            title = "Monthly Listwise",
+                            title = "Monthly Expenses",
                             icon = Icons.Outlined.InsertChart,
                             badgeColor = Color(0xFF0288D1),
                             bgColor = Color(0xFFE1F5FE),
@@ -451,7 +451,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     }
                     item {
                         ProfessionalMenuItem(
-                            title = "Loan Account & Reminders",
+                            title = "Loan Account",
                             icon = Icons.Outlined.Payments,
                             badgeColor = Color(0xFF8E24AA),
                             bgColor = Color(0xFFF3E5F5),

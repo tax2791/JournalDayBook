@@ -29,15 +29,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Divider
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
@@ -104,8 +107,8 @@ fun SummaryTable(viewModel: MealViewModel) {
 
     var fromDate by remember { mutableStateOf(defaultFromDateStr) }
     var toDate by remember { mutableStateOf(defaultToDateStr) }
-    var selectedName by remember { mutableStateOf(ALL_OPTION) } // Name filter
-    var selectedItem by remember { mutableStateOf(ALL_OPTION) } // Item filter
+    var selectedNames by remember { mutableStateOf(setOf(ALL_OPTION)) } // Multi-select Name filter
+    var selectedItems by remember { mutableStateOf(setOf(ALL_OPTION)) } // Multi-select Item filter
 
     // Dialog states for Date Pickers
     val fromDateDialogState = rememberMaterialDialogState()
@@ -119,16 +122,23 @@ fun SummaryTable(viewModel: MealViewModel) {
         (allMeals.map { it.item }.distinct() + ALL_OPTION).sorted()
     }
 
+    val nameFilterDisplay = remember(selectedNames) {
+        if (selectedNames.isEmpty() || ALL_OPTION in selectedNames) ALL_OPTION else selectedNames.joinToString(", ")
+    }
+    val itemFilterDisplay = remember(selectedItems) {
+        if (selectedItems.isEmpty() || ALL_OPTION in selectedItems) ALL_OPTION else selectedItems.joinToString(", ")
+    }
+
     // --- Filter Logic ---
-    val filteredMeals = remember(allMeals, fromDate, toDate, selectedName, selectedItem) {
+    val filteredMeals = remember(allMeals, fromDate, toDate, selectedNames, selectedItems) {
         allMeals.filter { meal ->
             val mealDate = formatDate(meal.date)
 
             val isDateInRange = (fromDate.isEmpty() || mealDate >= fromDate) &&
                     (toDate.isEmpty() || mealDate <= toDate)
 
-            val isNameMatch = selectedName == ALL_OPTION || meal.name == selectedName
-            val isItemMatch = selectedItem == ALL_OPTION || meal.item == selectedItem
+            val isNameMatch = selectedNames.isEmpty() || ALL_OPTION in selectedNames || meal.name in selectedNames
+            val isItemMatch = selectedItems.isEmpty() || ALL_OPTION in selectedItems || meal.item in selectedItems
 
             isDateInRange && isNameMatch && isItemMatch
         }
@@ -182,7 +192,14 @@ fun SummaryTable(viewModel: MealViewModel) {
                     fontWeight = FontWeight.Bold
                 )
 
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Calculator Button
+                    IconButton(
+                        onClick = { com.kushal.mealapp.FloatingCalculatorState.show() }
+                    ) {
+                        Text("🧮", fontSize = 18.sp)
+                    }
+
                     // Export PDF Button
                     Button(
                         onClick = {
@@ -190,7 +207,7 @@ fun SummaryTable(viewModel: MealViewModel) {
                                 Toast.makeText(context, "No transactions to export", Toast.LENGTH_SHORT).show()
                             } else {
                                 val pdfFile = MemberReportExporter.exportSummaryToPdf(
-                                    context, filteredMeals, fromDate, toDate, selectedName, selectedItem
+                                    context, filteredMeals, fromDate, toDate, nameFilterDisplay, itemFilterDisplay
                                 )
                                 if (pdfFile != null) {
                                     Toast.makeText(context, "Summary PDF Exported ✅", Toast.LENGTH_SHORT).show()
@@ -216,7 +233,7 @@ fun SummaryTable(viewModel: MealViewModel) {
                                 Toast.makeText(context, "No transactions to export", Toast.LENGTH_SHORT).show()
                             } else {
                                 val csvFile = MemberReportExporter.exportSummaryToExcelCsv(
-                                    context, filteredMeals, fromDate, toDate, selectedName, selectedItem
+                                    context, filteredMeals, fromDate, toDate, nameFilterDisplay, itemFilterDisplay
                                 )
                                 if (csvFile != null) {
                                     Toast.makeText(context, "Summary Excel CSV Exported ✅", Toast.LENGTH_SHORT).show()
@@ -241,11 +258,11 @@ fun SummaryTable(viewModel: MealViewModel) {
             FilterControls(
                 fromDate = fromDate,
                 toDate = toDate,
-                selectedName = selectedName,
-                onNameSelected = { selectedName = it },
+                selectedNames = selectedNames,
+                onNamesSelected = { selectedNames = it },
                 uniqueNames = uniqueMealNames,
-                selectedItem = selectedItem,
-                onItemSelected = { selectedItem = it },
+                selectedItems = selectedItems,
+                onItemsSelected = { selectedItems = it },
                 uniqueItems = uniqueMealItems,
                 fromDateDialogState = fromDateDialogState,
                 toDateDialogState = toDateDialogState,
@@ -364,6 +381,7 @@ fun SummaryTable(viewModel: MealViewModel) {
                 )
             }
         }
+        com.kushal.mealapp.GlobalCalculatorOverlay()
     }
 }
 
@@ -454,11 +472,11 @@ private fun TableTotalRow(totalFilteredAmount: Double) {
 private fun FilterControls(
     fromDate: String,
     toDate: String,
-    selectedName: String,
-    onNameSelected: (String) -> Unit,
+    selectedNames: Set<String>,
+    onNamesSelected: (Set<String>) -> Unit,
     uniqueNames: List<String>,
-    selectedItem: String,
-    onItemSelected: (String) -> Unit,
+    selectedItems: Set<String>,
+    onItemsSelected: (Set<String>) -> Unit,
     uniqueItems: List<String>,
     fromDateDialogState: MaterialDialogState,
     toDateDialogState: MaterialDialogState,
@@ -498,19 +516,19 @@ private fun FilterControls(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            DropdownFilter(
+            MultiSelectDropdownFilter(
                 label = "Filter by Name",
-                selectedValue = selectedName,
+                selectedValues = selectedNames,
                 options = uniqueNames,
-                onValueSelected = onNameSelected,
+                onValuesSelected = onNamesSelected,
                 modifier = Modifier.weight(1f).padding(end = 4.dp)
             )
 
-            DropdownFilter(
+            MultiSelectDropdownFilter(
                 label = "Filter by Item",
-                selectedValue = selectedItem,
+                selectedValues = selectedItems,
                 options = uniqueItems,
-                onValueSelected = onItemSelected,
+                onValuesSelected = onItemsSelected,
                 modifier = Modifier.weight(1f).padding(start = 4.dp)
             )
         }
@@ -519,8 +537,8 @@ private fun FilterControls(
         Button(
             onClick = {
                 onResetDates()
-                onNameSelected(ALL_OPTION)
-                onItemSelected(ALL_OPTION)
+                onNamesSelected(setOf(ALL_OPTION))
+                onItemsSelected(setOf(ALL_OPTION))
             },
             modifier = Modifier.align(Alignment.End),
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFFEBEE))
@@ -531,34 +549,80 @@ private fun FilterControls(
 }
 
 @Composable
-fun DropdownFilter(
+fun MultiSelectDropdownFilter(
     label: String,
-    selectedValue: String,
+    selectedValues: Set<String>,
     options: List<String>,
-    onValueSelected: (String) -> Unit,
+    onValuesSelected: (Set<String>) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    val displayText = remember(selectedValues) {
+        if (selectedValues.isEmpty() || ALL_OPTION in selectedValues) {
+            ALL_OPTION
+        } else if (selectedValues.size == 1) {
+            selectedValues.first()
+        } else {
+            "${selectedValues.size} selected"
+        }
+    }
+
     Box(modifier = modifier.wrapContentSize(Alignment.TopStart)) {
         OutlinedTextField(
-            value = selectedValue,
+            value = displayText,
             onValueChange = {},
             label = { Text(label) },
             readOnly = true,
-            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null, Modifier.clickable { expanded = true }) },
-            modifier = Modifier.fillMaxWidth()
+            trailingIcon = {
+                Icon(
+                    Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    modifier = Modifier.clickable { expanded = !expanded }
+                )
+            },
+            modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }
         )
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 300.dp)
         ) {
             options.forEach { option ->
-                DropdownMenuItem(onClick = {
-                    onValueSelected(option)
-                    expanded = false
-                }) {
-                    Text(text = option)
+                val isSelected = if (option == ALL_OPTION) {
+                    selectedValues.isEmpty() || ALL_OPTION in selectedValues
+                } else {
+                    option in selectedValues && ALL_OPTION !in selectedValues
+                }
+
+                DropdownMenuItem(
+                    onClick = {
+                        if (option == ALL_OPTION) {
+                            onValuesSelected(setOf(ALL_OPTION))
+                        } else {
+                            val newSet = selectedValues.minus(ALL_OPTION).toMutableSet()
+                            if (isSelected) {
+                                newSet.remove(option)
+                            } else {
+                                newSet.add(option)
+                            }
+                            if (newSet.isEmpty()) {
+                                newSet.add(ALL_OPTION)
+                            }
+                            onValuesSelected(newSet)
+                        }
+                    }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = null
+                        )
+                        Text(text = option)
+                    }
                 }
             }
         }

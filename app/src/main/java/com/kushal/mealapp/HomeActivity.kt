@@ -1266,7 +1266,7 @@ fun HomeScreen(
                 )
 
                 NavigationDrawerItem(
-                    label = { Text("PRO Calculator", fontWeight = FontWeight.SemiBold, fontSize = 15.sp) },
+                    label = { Text("Converter", fontWeight = FontWeight.SemiBold, fontSize = 15.sp) },
                     icon = {
                         Box(
                             modifier = Modifier

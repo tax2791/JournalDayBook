@@ -187,7 +187,14 @@ fun MemberReportScreen(viewModel: MealViewModel) {
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Calculator Button
+                    IconButton(
+                        onClick = { com.kushal.mealapp.FloatingCalculatorState.show() }
+                    ) {
+                        Text("🧮", fontSize = 18.sp)
+                    }
+
                     // Export PDF Button
                     Button(
                         onClick = {
@@ -560,6 +567,7 @@ fun TableView(
                 }
             }
         }
+        com.kushal.mealapp.GlobalCalculatorOverlay()
     }
 }
 
