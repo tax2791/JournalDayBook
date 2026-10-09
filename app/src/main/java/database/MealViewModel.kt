@@ -137,14 +137,21 @@ class MealViewModel(private val mealDao: MealDao) : ViewModel() {
     }
 
     // 🚀 Updated Helper to quickly add a Group Member from MemberForm
-    fun addGroupMember(name: String, openingBalance: Double, joinDate: Date, exitDate: Date?) {
+    fun addGroupMember(
+        name: String,
+        openingBalance: Double,
+        joinDate: Date,
+        exitDate: Date?,
+        groupName: String? = null
+    ) {
         val member = Member(
             name = name,
             type = "Group Member",
             openingBalance = openingBalance,
             createdDate = System.currentTimeMillis(),
             joinDate = joinDate,
-            exitDate = exitDate
+            exitDate = exitDate,
+            accountName = groupName?.ifBlank { null }
         )
         insertMember(member)
     }

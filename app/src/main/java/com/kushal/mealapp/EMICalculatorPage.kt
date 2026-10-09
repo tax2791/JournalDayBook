@@ -64,6 +64,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,6 +81,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
+import java.net.URLEncoder
 import java.util.Calendar
 import kotlin.math.pow
 
@@ -109,10 +111,21 @@ data class AgeResultData(
     val totalDays: Int
 )
 
+data class WeatherData(
+    val cityName: String,
+    val country: String,
+    val temperature: Double,
+    val apparentTemperature: Double,
+    val humidity: Int,
+    val windSpeed: Double,
+    val weatherCondition: String
+)
+
 enum class ConverterType(val title: String) {
     EMI("EMI"),
     AGE("Age"),
     FOREX("Forex (FX)"),
+    WEATHER("Weather Report"),
     LENGTH("Length"),
     WEIGHT("Weight"),
     TEMPERATURE("Temperature")
@@ -122,8 +135,16 @@ enum class ConverterType(val title: String) {
 
 @Composable
 fun EMICalculatorPage(onBack: () -> Unit) {
-    BackHandler { onBack() }
+    val currentOnBack by rememberUpdatedState(onBack)
     var currentTab by remember { mutableStateOf(ConverterType.EMI) }
+
+    BackHandler(enabled = true) {
+        if (currentTab != ConverterType.EMI) {
+            currentTab = ConverterType.EMI
+        } else {
+            currentOnBack()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -132,34 +153,6 @@ fun EMICalculatorPage(onBack: () -> Unit) {
                 backgroundColor = Color(0xFF1565C0),
                 contentColor = Color.White,
                 modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
-                    }
-                },
-                actions = {
-                    Button(
-                        onClick = onBack,
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF0D47A1)),
-                        shape = RoundedCornerShape(20.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Back",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
                 elevation = 0.dp
             )
         }
@@ -207,6 +200,7 @@ fun EMICalculatorPage(onBack: () -> Unit) {
                         ConverterType.EMI -> EMICalculatorContent()
                         ConverterType.AGE -> AgeCalculatorContent()
                         ConverterType.FOREX -> LiveForexConverterContent()
+                        ConverterType.WEATHER -> WeatherReportContent()
                         ConverterType.LENGTH -> UnitConverterContent(
                             categoryName = "Length Converter",
                             units = listOf("Meters", "Kilometers", "Centimeters", "Millimeters", "Miles", "Yards", "Feet", "Inches"),
@@ -227,6 +221,53 @@ fun EMICalculatorPage(onBack: () -> Unit) {
                             defaultFrom = "Celsius (°C)",
                             defaultTo = "Fahrenheit (°F)",
                             conversionLogic = ::convertTemperature
+                        )
+                    }
+                }
+            }
+
+            // Small Colorful Bottom Back Button
+            Button(
+                onClick = {
+                    if (currentTab != ConverterType.EMI) {
+                        currentTab = ConverterType.EMI
+                    } else {
+                        onBack()
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 4.dp)
+                    .height(36.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+                contentPadding = PaddingValues(0.dp),
+                elevation = ButtonDefaults.elevation(defaultElevation = 2.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color(0xFFE91E63), Color(0xFF9C27B0), Color(0xFF3F51B5))
+                            ),
+                            shape = RoundedCornerShape(18.dp)
+                        )
+                        .padding(horizontal = 20.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Back",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -403,19 +444,21 @@ fun AgeCalculatorContent() {
     val currentMonth = currentCal.get(Calendar.MONTH) + 1
     val currentDay = currentCal.get(Calendar.DAY_OF_MONTH)
 
-    // Birth Date States (Default: Current Date)
     var birthDay by remember { mutableStateOf(currentDay.toString()) }
     var birthMonth by remember { mutableStateOf(getMonthName(currentMonth)) }
     var birthYear by remember { mutableStateOf(currentYear.toString()) }
 
-    // Target Date States (Default: Current device date)
     var targetDay by remember { mutableStateOf(currentDay.toString()) }
     var targetMonth by remember { mutableStateOf(getMonthName(currentMonth)) }
     var targetYear by remember { mutableStateOf(currentYear.toString()) }
 
-    var activePicker by remember { mutableStateOf<String?>(null) } // "birth" or "target"
+    var activePicker by remember { mutableStateOf<String?>(null) }
     var ageResult by remember { mutableStateOf<AgeResultData?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    BackHandler(enabled = activePicker != null) {
+        activePicker = null
+    }
 
     val daysList = (1..31).map { it.toString() }
     val monthsList = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
@@ -436,7 +479,6 @@ fun AgeCalculatorContent() {
                     Text("Age Calculator", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Date of Birth Section
                     Text("Date of Birth", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1565C0))
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(
@@ -475,7 +517,6 @@ fun AgeCalculatorContent() {
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Target Date Section
                     Text("Calculate Age As Of", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1565C0))
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(
@@ -512,7 +553,6 @@ fun AgeCalculatorContent() {
                         }
                     }
 
-                    // Embedded Cascading Calendar Popup
                     if (activePicker != null) {
                         Spacer(modifier = Modifier.height(14.dp))
                         val isBirth = activePicker == "birth"
@@ -632,14 +672,14 @@ fun AgeCalculatorContent() {
     }
 }
 
-// --- Form-Style Cascading Calendar Picker (Day -> Month -> 10-Year Range) ---
+// --- Form-Style Cascading Calendar Picker ---
 
 enum class CalendarViewMode { DAYS, MONTHS, YEARS_10 }
 
 @Composable
 fun FormStyleCascadingCalendar(
     year: Int,
-    month: Int, // 0-based
+    month: Int,
     selectedDay: Int,
     onDateSelected: (Int, Int, Int) -> Unit
 ) {
@@ -853,9 +893,7 @@ fun FormStyleCascadingCalendar(
     }
 }
 
-
-
-// --- Tab 2: Live Forex Converter ---
+// --- Tab 3: Live Forex Converter ---
 
 @Composable
 fun LiveForexConverterContent() {
@@ -992,7 +1030,127 @@ fun LiveForexConverterContent() {
     }
 }
 
-// --- Universal Reusable Unit Converter Component (Length, Weight, Temp) ---
+// --- Tab 4: Global Weather Report Screen ---
+
+@Composable
+fun WeatherReportContent() {
+    var cityName by remember { mutableStateOf("New Delhi") }
+    var weatherData by remember { mutableStateOf<WeatherData?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorText by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
+    fun fetchWeatherForCity(query: String) {
+        if (query.isBlank()) {
+            errorText = "Please enter a city name"
+            return
+        }
+        isLoading = true
+        errorText = null
+
+        scope.launch {
+            val result = fetchWorldWeather(query.trim())
+            if (result != null) {
+                weatherData = result
+                errorText = null
+            } else {
+                errorText = "City not found or network error. Please try again."
+            }
+            isLoading = false
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        fetchWeatherForCity(cityName)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            elevation = 4.dp,
+            backgroundColor = Color.White
+        ) {
+            Column(modifier = Modifier.padding(18.dp)) {
+                Text("World Weather Report", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
+                Spacer(modifier = Modifier.height(14.dp))
+
+                OutlinedTextField(
+                    value = cityName,
+                    onValueChange = { cityName = it },
+                    label = { Text("Enter City (e.g. Tokyo, New York, Delhi)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Button(
+                    onClick = { fetchWeatherForCity(cityName) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0)),
+                    enabled = !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text("Get Weather", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                if (errorText != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(errorText!!, color = MaterialTheme.colors.error, fontSize = 13.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        weatherData?.let { data ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                backgroundColor = Color(0xFF0D47A1),
+                elevation = 6.dp
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text("${data.cityName}, ${data.country}", color = Color(0xFF90CAF9), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "${data.temperature}°C",
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = data.weatherCondition,
+                        fontSize = 15.sp,
+                        color = Color.White.copy(alpha = 0.9f)
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Divider(color = Color.White.copy(alpha = 0.2f))
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    MetricRow("Feels Like", "${data.apparentTemperature}°C")
+                    MetricRow("Humidity", "${data.humidity}%")
+                    MetricRow("Wind Speed", "${data.windSpeed} km/h")
+                }
+            }
+        }
+    }
+}
+
+// --- Universal Reusable Unit Converter Component ---
 
 @Composable
 fun UnitConverterContent(
@@ -1158,7 +1316,7 @@ fun computeAge(bDay: Int, bMonth: Int, bYear: Int, tDay: Int, tMonth: Int, tYear
         }
 
         val diffInMillis = targetCal.timeInMillis - birthCal.timeInMillis
-        val totalDays = (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
+        val totalDays = (diffInMillis / (1000L * 60L * 60L * 24L)).toInt()
         val totalWeeks = totalDays / 7
         val totalMonths = (years * 12) + months
 
@@ -1168,7 +1326,6 @@ fun computeAge(bDay: Int, bMonth: Int, bYear: Int, tDay: Int, tMonth: Int, tYear
     }
 }
 
-
 fun computeEMI(principal: String, interest: String, tenureMonths: String): EMIResultData? {
     return try {
         val p = principal.toDouble()
@@ -1176,7 +1333,7 @@ fun computeEMI(principal: String, interest: String, tenureMonths: String): EMIRe
         val n = tenureMonths.toInt()
         if (p <= 0 || annualRate <= 0 || n <= 0) return null
 
-        val r = annualRate / (12 * 100)
+        val r = annualRate / (12.0 * 100.0)
         val emi = p * r * (1 + r).pow(n) / ((1 + r).pow(n) - 1)
 
         val breakdown = mutableListOf<EMIMonthly>()
@@ -1200,12 +1357,61 @@ fun computeEMI(principal: String, interest: String, tenureMonths: String): EMIRe
 
 suspend fun fetchLiveRate(base: String, target: String): Double {
     return withContext(Dispatchers.IO) {
-        // Free open endpoint with no authentication token needed
         val url = URL("https://open.er-api.com/v6/latest/$base")
         val response = url.readText()
         val json = JSONObject(response)
         val rates = json.getJSONObject("rates")
         rates.getDouble(target)
+    }
+}
+
+suspend fun fetchWorldWeather(cityName: String): WeatherData? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val encodedCity = URLEncoder.encode(cityName, "UTF-8")
+            val geoUrl = URL("https://geocoding-api.open-meteo.com/v1/search?name=$encodedCity&count=1")
+            val geoResponse = geoUrl.readText()
+            val geoJson = JSONObject(geoResponse)
+            if (!geoJson.has("results")) return@withContext null
+            val results = geoJson.getJSONArray("results")
+            if (results.length() == 0) return@withContext null
+
+            val cityObj = results.getJSONObject(0)
+            val lat = cityObj.getDouble("latitude")
+            val lon = cityObj.getDouble("longitude")
+            val name = cityObj.getString("name")
+            val country = cityObj.optString("country", "")
+
+            val weatherUrl = URL("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m")
+            val weatherResponse = weatherUrl.readText()
+            val weatherJson = JSONObject(weatherResponse)
+            val current = weatherJson.getJSONObject("current")
+
+            WeatherData(
+                cityName = name,
+                country = country,
+                temperature = current.getDouble("temperature_2m"),
+                apparentTemperature = current.getDouble("apparent_temperature"),
+                humidity = current.getInt("relative_humidity_2m"),
+                windSpeed = current.getDouble("wind_speed_10m"),
+                weatherCondition = getWeatherCondition(current.getInt("weather_code"))
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+}
+
+fun getWeatherCondition(code: Int): String {
+    return when (code) {
+        0 -> "Clear sky"
+        1, 2, 3 -> "Partly cloudy"
+        45, 48 -> "Foggy"
+        51, 53, 55 -> "Drizzle"
+        61, 63, 65 -> "Rain"
+        71, 73, 75 -> "Snow fall"
+        95, 96, 99 -> "Thunderstorm"
+        else -> "Fair"
     }
 }
 

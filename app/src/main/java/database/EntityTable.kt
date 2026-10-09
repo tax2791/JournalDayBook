@@ -428,7 +428,16 @@ fun EditMemberDialog(
                     }
                 }
 
-                if (entryType == "Personal Account") {
+                if (entryType == "Group Member") {
+                    OutlinedTextField(
+                        value = accountName,
+                        onValueChange = { accountName = it },
+                        label = { Text("Group Name (Optional)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                } else {
                     OutlinedTextField(
                         value = accountName,
                         onValueChange = { accountName = it },
@@ -530,7 +539,7 @@ fun EditMemberDialog(
                     val updatedMember = member.copy(
                         name = name.trim(),
                         type = entryType,
-                        accountName = if (entryType == "Personal Account") accountName.trim().ifEmpty { name.trim() } else null,
+                        accountName = if (entryType == "Personal Account") accountName.trim().ifEmpty { name.trim() } else accountName.trim().ifEmpty { null },
                         accountType = if (entryType == "Personal Account") accountType else null,
                         openingBalance = openingBalance.toDoubleOrNull() ?: member.openingBalance,
                         joinDate = joinDate,

@@ -68,7 +68,20 @@ fun MemberForm(
     val accountTypes = listOf("Savings", "Deposit", "Credit Card", "Cash Wallet", "Current","Investment", "Other")
 
     // Group Member specific fields
+    var groupName by remember { mutableStateOf("") }
+    var expandedGroupName by remember { mutableStateOf(false) }
     var exitDate by remember { mutableStateOf<Date?>(null) }
+
+    // Derived existing group names list for auto-suggestion
+    val existingGroupNames by remember(allMembers) {
+        derivedStateOf {
+            allMembers.mapNotNull { member ->
+                if (member.type == "Group Member" && !member.accountName.isNullOrBlank()) {
+                    member.accountName.trim()
+                } else null
+            }.distinct().sorted()
+        }
+    }
 
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     val scrollState = rememberScrollState()
@@ -275,17 +288,61 @@ fun MemberForm(
                                 }
                             }
                         }
-                        // 1. Name Input
+                        // 1. Group Name Input (Group Member only)
+                        if (entryType == "Group Member") {
+                            ExposedDropdownMenuBox(
+                                expanded = expandedGroupName && existingGroupNames.isNotEmpty(),
+                                onExpandedChange = { expandedGroupName = !expandedGroupName },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = groupName,
+                                    onValueChange = {
+                                        groupName = it
+                                        expandedGroupName = true
+                                    },
+                                    label = { Text("Group Name (Optional e.g. Mess, Flat 101, Batch A)") },
+                                    singleLine = true,
+                                    trailingIcon = {
+                                        if (existingGroupNames.isNotEmpty()) {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedGroupName)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryEditable, enabled = true)
+                                        .fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                if (existingGroupNames.isNotEmpty()) {
+                                    ExposedDropdownMenu(
+                                        expanded = expandedGroupName,
+                                        onDismissRequest = { expandedGroupName = false }
+                                    ) {
+                                        existingGroupNames.forEach { existingGroup ->
+                                            DropdownMenuItem(
+                                                text = { Text(existingGroup) },
+                                                onClick = {
+                                                    groupName = existingGroup
+                                                    expandedGroupName = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // 2. Member Name Input
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
-                            label = { Text(if (entryType == "Group Member") "Member Name" else "Account Label / Name") },
+                            label = { Text(if (entryType == "Group Member") "Group Member Name" else "Account Label / Name") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
                         )
 
-                        // 2. Personal Account Sub-Type Dropdown
+                        // 3. Personal Account Sub-Type Dropdown
                         if (entryType == "Personal Account") {
                             ExposedDropdownMenuBox(
                                 expanded = expandedAccountType,
@@ -320,7 +377,7 @@ fun MemberForm(
                             }
                         }
 
-                        // 3. Opening Balance (₹)
+                        // 4. Opening Balance (₹)
                         OutlinedTextField(
                             value = openingBalance,
                             onValueChange = { openingBalance = it },
@@ -332,7 +389,7 @@ fun MemberForm(
                             shape = RoundedCornerShape(12.dp)
                         )
 
-                        // 4. Opening / Join Date Field
+                        // 5. Opening / Join Date Field
                         OutlinedTextField(
                             value = joinDate?.let { dateFormat.format(it) } ?: "Select Opening Balance Date",
                             onValueChange = {},
@@ -349,7 +406,7 @@ fun MemberForm(
                             shape = RoundedCornerShape(12.dp)
                         )
 
-                        // 5. Exit Date (Group Members only)
+                        // 6. Exit Date (Group Members only)
                         if (entryType == "Group Member") {
                             OutlinedTextField(
                                 value = exitDate?.let { dateFormat.format(it) } ?: "Select Exit Date (Optional)",
@@ -388,7 +445,8 @@ fun MemberForm(
                                         name = name.trim(),
                                         openingBalance = balanceValue,
                                         joinDate = joinDate!!,
-                                        exitDate = exitDate
+                                        exitDate = exitDate,
+                                        groupName = groupName.trim()
                                     )
                                 } else {
                                     viewModel.addPersonalAccount(
@@ -407,6 +465,7 @@ fun MemberForm(
                                 ).show()
 
                                 name = ""
+                                groupName = ""
                                 openingBalance = ""
                                 joinDate = Date()
                                 exitDate = null
