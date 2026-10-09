@@ -1512,7 +1512,7 @@ fun HomeScreen(
                                 else onRequireLogin("ChatActivity")
                             },
                             HomeButton("Calculator", "🧮", Color(0xFFADD8E6), Color(0xFFE0F7FA)) { FloatingCalculatorState.show() },
-                            HomeButton("PRO Calculator", "📊", Color(0xFF03A9F4), Color(0xFFF3E5F5)) { showEMI = true }
+                            HomeButton("Converter", "📊", Color(0xFF03A9F4), Color(0xFFF3E5F5)) { showEMI = true }
                         )
 
                         LazyVerticalGrid(

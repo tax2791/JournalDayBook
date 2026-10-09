@@ -424,7 +424,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     }
                     item {
                         ProfessionalMenuItem(
-                            title = "Report",
+                            title = "Account Report",
                             icon = Icons.Outlined.Assessment,
                             badgeColor = Color(0xFF388E3C),
                             bgColor = Color(0xFFE8F5E9),
@@ -442,7 +442,7 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     }
                     item {
                         ProfessionalMenuItem(
-                            title = "Monthly Expenses",
+                            title = "Monthly Report",
                             icon = Icons.Outlined.InsertChart,
                             badgeColor = Color(0xFF0288D1),
                             bgColor = Color(0xFFE1F5FE),
