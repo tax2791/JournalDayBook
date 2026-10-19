@@ -81,6 +81,10 @@ class MealActivity : ComponentActivity() {
                     composable("group_report") {
                         GroupReportScreen(viewModel = mealViewModel)
                     }
+
+                    composable("smart_note") {
+                        SmartNoteScreen(viewModel = mealViewModel)
+                    }
                 }
 
                 AutoSyncFlashOverlay()

@@ -23,22 +23,33 @@ class MyApp : Application() {
                 if (existing != null && existing.isOpen) {
                     existing
                 } else {
-                    val dbFile = context.getDatabasePath("app_database")
-                    Log.d(TAG, "Initializing DB from file: ${dbFile.absolutePath}, size: ${if (dbFile.exists()) dbFile.length() else 0} bytes")
-
-                    val instance = Room.databaseBuilder(
-                        context.applicationContext,
-                        AppDatabase::class.java,
-                        "app_database"
-                    )
-                        .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
-                        .fallbackToDestructiveMigration(true)
-                        .build()
-
-                    dbInstance = instance
-                    instance
+                    try {
+                        createRoomDatabase(context)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error opening DB on launch, resetting stale instance...", e)
+                        clearDatabaseInstance()
+                        createRoomDatabase(context)
+                    }
                 }
             }
+        }
+
+        private fun createRoomDatabase(context: Context): AppDatabase {
+            val dbFile = context.getDatabasePath("app_database")
+            Log.d(TAG, "Initializing DB from file: ${dbFile.absolutePath}, size: ${if (dbFile.exists()) dbFile.length() else 0} bytes")
+
+            val instance = Room.databaseBuilder(
+                context.applicationContext,
+                AppDatabase::class.java,
+                "app_database"
+            )
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_1_3)
+                .fallbackToDestructiveMigrationOnDowngrade(true)
+                .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
+                .build()
+
+            dbInstance = instance
+            return instance
         }
 
         fun clearDatabaseInstance() {
@@ -65,5 +76,29 @@ class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "App launched")
+
+        // 🧹 Automatically clear stale cache directory upon app update
+        try {
+            val prefs = getSharedPreferences("app_version_prefs", MODE_PRIVATE)
+            val lastVersionCode = prefs.getInt("last_app_version_code", 0)
+            val currentVersionCode = try {
+                packageManager.getPackageInfo(packageName, 0).versionCode
+            } catch (_: Exception) {
+                35
+            }
+
+            if (lastVersionCode != 0 && lastVersionCode < currentVersionCode) {
+                Log.d(TAG, "⚡ App updated ($lastVersionCode -> $currentVersionCode). Clearing stale cache...")
+                clearDatabaseInstance()
+                try {
+                    cacheDir.deleteRecursively()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to clear stale cacheDir on app update", e)
+                }
+            }
+            prefs.edit().putInt("last_app_version_code", currentVersionCode).apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking version upgrade in MyApp", e)
+        }
     }
 }

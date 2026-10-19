@@ -71,3 +71,14 @@ data class LoanRepayment(
     val paymentMode: String = "Cash",
     val remarks: String = ""
 )
+
+@Entity(tableName = "smart_note")
+data class SmartNote(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
+    val title: String,
+    val content: String,
+    val tag: String = "General",
+    val date: Date = Date(),
+    val createdTime: Long = System.currentTimeMillis()
+)

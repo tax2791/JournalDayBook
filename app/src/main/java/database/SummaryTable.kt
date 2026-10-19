@@ -5,7 +5,9 @@ package database
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
@@ -29,7 +32,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
@@ -43,7 +45,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -70,8 +71,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kushal.mealapp.BannerAdView
 import com.kushal.mealapp.DriveBackupManager
-import java.util.Calendar
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogState
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -80,14 +81,15 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import com.kushal.mealapp.BannerAdView
 import kotlin.math.abs
 
 // --- Constants for Dropdown Menu ---
 private const val ALL_OPTION = "All"
 //SummyTable
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("DefaultLocale")
 @Composable
 fun SummaryTable(viewModel: MealViewModel) {
@@ -109,6 +111,11 @@ fun SummaryTable(viewModel: MealViewModel) {
     var toDate by remember { mutableStateOf(defaultToDateStr) }
     var selectedNames by remember { mutableStateOf(setOf(ALL_OPTION)) } // Multi-select Name filter
     var selectedItems by remember { mutableStateOf(setOf(ALL_OPTION)) } // Multi-select Item filter
+    var selectedType by remember { mutableStateOf("All") } // Transaction type filter (All, Expenditure, Receipt/Transfer In, Transfer Out)
+
+    val transactionTypeOptions = remember {
+        listOf("All", "Expenditure", "Receipt/Transfer In", "Transfer Out")
+    }
 
     // Dialog states for Date Pickers
     val fromDateDialogState = rememberMaterialDialogState()
@@ -130,7 +137,7 @@ fun SummaryTable(viewModel: MealViewModel) {
     }
 
     // --- Filter Logic ---
-    val filteredMeals = remember(allMeals, fromDate, toDate, selectedNames, selectedItems) {
+    val filteredMeals = remember(allMeals, fromDate, toDate, selectedNames, selectedItems, selectedType) {
         allMeals.filter { meal ->
             val mealDate = formatDate(meal.date)
 
@@ -140,7 +147,14 @@ fun SummaryTable(viewModel: MealViewModel) {
             val isNameMatch = selectedNames.isEmpty() || ALL_OPTION in selectedNames || meal.name in selectedNames
             val isItemMatch = selectedItems.isEmpty() || ALL_OPTION in selectedItems || meal.item in selectedItems
 
-            isDateInRange && isNameMatch && isItemMatch
+            val isTypeMatch = when (selectedType) {
+                "Expenditure" -> !meal.item.startsWith("Receipt") && meal.item !in listOf("Deposit", "Transfer In", "Transfer Out")
+                "Receipt/Transfer In", "Transfer In / Receipt" -> meal.item.startsWith("Receipt") || meal.item in listOf("Deposit", "Transfer In")
+                "Transfer Out" -> meal.item == "Transfer Out" || meal.price < 0
+                else -> true
+            }
+
+            isDateInRange && isNameMatch && isItemMatch && isTypeMatch
         }
     }
 
@@ -188,7 +202,7 @@ fun SummaryTable(viewModel: MealViewModel) {
             ) {
                 Text(
                     "Transactions",
-                    style = MaterialTheme.typography.h5,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -264,6 +278,9 @@ fun SummaryTable(viewModel: MealViewModel) {
                 selectedItems = selectedItems,
                 onItemsSelected = { selectedItems = it },
                 uniqueItems = uniqueMealItems,
+                selectedType = selectedType,
+                onTypeSelected = { selectedType = it },
+                transactionTypeOptions = transactionTypeOptions,
                 fromDateDialogState = fromDateDialogState,
                 toDateDialogState = toDateDialogState,
                 onResetDates = {
@@ -478,6 +495,9 @@ private fun FilterControls(
     selectedItems: Set<String>,
     onItemsSelected: (Set<String>) -> Unit,
     uniqueItems: List<String>,
+    selectedType: String,
+    onTypeSelected: (String) -> Unit,
+    transactionTypeOptions: List<String>,
     fromDateDialogState: MaterialDialogState,
     toDateDialogState: MaterialDialogState,
     onResetDates: () -> Unit
@@ -534,16 +554,72 @@ private fun FilterControls(
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(
-            onClick = {
-                onResetDates()
-                onNamesSelected(setOf(ALL_OPTION))
-                onItemsSelected(setOf(ALL_OPTION))
-            },
-            modifier = Modifier.align(Alignment.End),
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFFEBEE))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Reset Filters", color = Color.Black)
+            SingleSelectDropdownFilter(
+                label = "Filter by Type",
+                selectedValue = selectedType,
+                options = transactionTypeOptions,
+                onValueSelected = onTypeSelected,
+                modifier = Modifier.weight(1f).padding(end = 4.dp)
+            )
+
+            Button(
+                onClick = {
+                    onResetDates()
+                    onNamesSelected(setOf(ALL_OPTION))
+                    onItemsSelected(setOf(ALL_OPTION))
+                    onTypeSelected("All")
+                },
+                modifier = Modifier.padding(start = 4.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFFEBEE))
+            ) {
+                Text("Reset Filters", color = Color.Black)
+            }
+        }
+    }
+}
+
+@Composable
+fun SingleSelectDropdownFilter(
+    label: String,
+    selectedValue: String,
+    options: List<String>,
+    onValueSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier.wrapContentSize(Alignment.TopStart)) {
+        OutlinedTextField(
+            value = selectedValue,
+            onValueChange = {},
+            label = { Text(label) },
+            readOnly = true,
+            trailingIcon = {
+                Icon(
+                    Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    modifier = Modifier.clickable { expanded = !expanded }
+                )
+            },
+            modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(onClick = {
+                    onValueSelected(option)
+                    expanded = false
+                }) {
+                    Text(text = option)
+                }
+            }
         }
     }
 }
@@ -629,6 +705,7 @@ fun MultiSelectDropdownFilter(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DateDialog(
     dialogState: MaterialDialogState,
@@ -653,6 +730,7 @@ fun DateDialog(
 
 // --- Helper Functions ---
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun LocalDate.toDate(): Date = Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
 
 private val currencyFormatter = object : ThreadLocal<DecimalFormat>() {

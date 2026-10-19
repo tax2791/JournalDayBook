@@ -209,6 +209,18 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp)
                 )
 
+                // 5c. Smart Notes
+                NavigationDrawerItem(
+                    label = { Text("Smart Notes", fontWeight = FontWeight.SemiBold) },
+                    icon = { Icon(Icons.Outlined.Description, contentDescription = null, tint = Color(0xFFE91E63)) },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate("smart_note")
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp)
+                )
+
                 // 6. Pie Chart
                 NavigationDrawerItem(
                     label = { Text("Expense Pie Chart", fontWeight = FontWeight.SemiBold) },
@@ -450,6 +462,15 @@ fun MealScreen(viewModel: MealViewModel, navController: NavHostController) {
                             badgeColor = Color(0xFF388E3C),
                             bgColor = Color(0xFFE8F5E9),
                             onClick = { navController.navigate("member_report") }
+                        )
+                    }
+                    item {
+                        ProfessionalMenuItem(
+                            title = "Smart Notes",
+                            icon = Icons.Outlined.Description,
+                            badgeColor = Color(0xFFE91E63),
+                            bgColor = Color(0xFFFCE4EC),
+                            onClick = { navController.navigate("smart_note") }
                         )
                     }
                     item {

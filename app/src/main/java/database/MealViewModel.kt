@@ -1,5 +1,7 @@
 package database
 
+import android.content.Context
+import com.kushal.mealapp.DriveBackupManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -207,6 +209,30 @@ class MealViewModel(private val mealDao: MealDao) : ViewModel() {
         viewModelScope.launch {
             mealDao.updatePartyNameInLoans(oldName, newName, newPhone)
             mealDao.updatePartyNameInRepayments(oldName, newName)
+        }
+    }
+
+    // 📝 Smart Notes Flow & CRUD with Auto-Sync
+    val allSmartNotes: Flow<List<SmartNote>> = mealDao.getAllSmartNotes()
+
+    fun addSmartNote(note: SmartNote, context: Context) {
+        viewModelScope.launch {
+            mealDao.insertSmartNote(note)
+            DriveBackupManager.syncAutomatically(context)
+        }
+    }
+
+    fun updateSmartNote(note: SmartNote, context: Context) {
+        viewModelScope.launch {
+            mealDao.updateSmartNote(note)
+            DriveBackupManager.syncAutomatically(context)
+        }
+    }
+
+    fun deleteSmartNote(note: SmartNote, context: Context) {
+        viewModelScope.launch {
+            mealDao.deleteSmartNote(note)
+            DriveBackupManager.syncAutomatically(context)
         }
     }
 

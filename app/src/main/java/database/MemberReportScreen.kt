@@ -182,7 +182,7 @@ fun MemberReportScreen(viewModel: MealViewModel) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "💳 Account Report",
+                    text = "💳 Report",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary

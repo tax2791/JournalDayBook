@@ -184,7 +184,7 @@ class HomeActivity : ComponentActivity() {
 
         if (requestCode == UPDATE_REQUEST_CODE) {
             if (resultCode != RESULT_OK) {
-                finish()
+                Toast.makeText(this, "Update deferred. You can update anytime from the home banner.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -193,19 +193,9 @@ class HomeActivity : ComponentActivity() {
         appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
             if (info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
                 isUpdateAvailableState.value = true
-                if (info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
-                    try {
-                        appUpdateManager.startUpdateFlowForResult(
-                            info,
-                            AppUpdateType.IMMEDIATE,
-                            this,
-                            UPDATE_REQUEST_CODE
-                        )
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
             }
+        }.addOnFailureListener {
+            Log.d("HomeActivity", "App update check failed or unverified", it)
         }
     }
 
@@ -236,19 +226,6 @@ class HomeActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-
-        appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
-            if (info.updateAvailability() ==
-                UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS
-            ) {
-                appUpdateManager.startUpdateFlowForResult(
-                    info,
-                    AppUpdateType.IMMEDIATE,
-                    this,
-                    UPDATE_REQUEST_CODE
-                )
-            }
-        }
     }
 
     private fun <T> navigateTo(destination: Class<T>) {

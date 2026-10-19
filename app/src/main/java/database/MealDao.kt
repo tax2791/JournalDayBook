@@ -156,4 +156,17 @@ interface MealDao {
 
     @Query("UPDATE loan_repayment SET partyName = :newName WHERE partyName = :oldName")
     suspend fun updatePartyNameInRepayments(oldName: String, newName: String)
+
+    // 📝 Smart Notes DAOs
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSmartNote(note: SmartNote): Long
+
+    @Update
+    suspend fun updateSmartNote(note: SmartNote)
+
+    @Delete
+    suspend fun deleteSmartNote(note: SmartNote)
+
+    @Query("SELECT * FROM smart_note ORDER BY createdTime DESC")
+    fun getAllSmartNotes(): Flow<List<SmartNote>>
 }
