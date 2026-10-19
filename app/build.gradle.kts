@@ -15,11 +15,11 @@ android {
     compileSdk = 37
     defaultConfig {
         applicationId = "com.kushal.mealapp"
-        minSdk = 24
+        minSdk = 26
         //noinspection OldTargetApi
         targetSdk = 36
-        versionCode = 35
-        versionName = "3.5"
+        versionCode = 36
+        versionName = "3.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
