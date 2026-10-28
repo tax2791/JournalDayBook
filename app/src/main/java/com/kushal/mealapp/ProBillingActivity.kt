@@ -1,19 +1,26 @@
 package com.kushal.mealapp
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import android.net.Uri
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,9 +28,38 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -37,10 +73,17 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.edit
-import com.android.billingclient.api.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.android.billingclient.api.AcknowledgePurchaseParams
+import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.PendingPurchasesParams
+import com.android.billingclient.api.ProductDetails
+import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -128,71 +171,59 @@ class ProBillingActivity : ComponentActivity(), PurchasesUpdatedListener {
     }
 
     private fun queryProductDetailsFromPlayConsole() {
-        // 1. Query Subscription Products (jdb-pro-monthly-01, jdb-pro-yearly-01, pro_monthly, pro_yearly)
-        val subsList = listOf(
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("jdb-pro-monthly-01")
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build(),
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("pro_monthly")
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build(),
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("jdb-pro-yearly-12")
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build(),
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("pro_yearly")
-                .setProductType(BillingClient.ProductType.SUBS)
+        val candidateProductIds = listOf(
+            "pro_monthly", "jdb-pro-monthly-01", "jdb-pro-monthly", "pro_99", "sku_99", "monthly_99", "pack_99", "pro_monthly_99", "monthly",
+            "pro_yearly", "jdb-pro-yearly-01", "jdb-pro-yearly-12", "jdb-pro-yearly", "pro_499", "sku_499", "yearly_499", "pack_499", "pro_yearly_499", "yearly",
+            "pro_lifetime", "lifetime-pro", "jdb-pro-lifetime-01", "pro_lifetime_purchase", "jdb-pro-lifetime", "pro_999", "sku_999", "pack_999", "lifetime"
+        ).distinct()
+
+        candidateProductIds.forEach { productId ->
+            // Query as Subscription
+            val subParam = QueryProductDetailsParams.newBuilder()
+                .setProductList(
+                    listOf(
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(productId)
+                            .setProductType(BillingClient.ProductType.SUBS)
+                            .build()
+                    )
+                )
                 .build()
-        )
 
-        val subsParams = QueryProductDetailsParams.newBuilder()
-            .setProductList(subsList)
-            .build()
-
-        billingClient.queryProductDetailsAsync(subsParams) { billingResult, productDetailsResult ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                val list = productDetailsResult.productDetailsList
-                Log.d("PlayBilling", "Fetched ${list.size} SUBS products from Play Console")
-                val updatedMap = playConsoleProducts.value.toMutableMap()
-                list.forEach { updatedMap[it.productId] = it }
-                playConsoleProducts.value = updatedMap
-            } else {
-                Log.e("PlayBilling", "queryProductDetails SUBS failed: ${billingResult.debugMessage}")
+            billingClient.queryProductDetailsAsync(subParam) { billingResult, productDetailsResult ->
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    val list = productDetailsResult.productDetailsList
+                    if (!list.isNullOrEmpty()) {
+                        Log.d("PlayBilling", "Found SUBS product on Play Console: $productId")
+                        val updatedMap = playConsoleProducts.value.toMutableMap()
+                        list.forEach { updatedMap[it.productId] = it }
+                        playConsoleProducts.value = updatedMap
+                    }
+                }
             }
-        }
 
-        // 2. Query In-App One-Time Products (jdb-pro-lifetime-01, pro_lifetime)
-        val inAppList = listOf(
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("jdb-pro-lifetime-01")
-                .setProductType(BillingClient.ProductType.INAPP)
-                .build(),
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("pro_lifetime")
-                .setProductType(BillingClient.ProductType.INAPP)
-                .build(),
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("pro_lifetime_purchase")
-                .setProductType(BillingClient.ProductType.INAPP)
+            // Query as In-App Product
+            val inAppParam = QueryProductDetailsParams.newBuilder()
+                .setProductList(
+                    listOf(
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(productId)
+                            .setProductType(BillingClient.ProductType.INAPP)
+                            .build()
+                    )
+                )
                 .build()
-        )
 
-        val inAppParams = QueryProductDetailsParams.newBuilder()
-            .setProductList(inAppList)
-            .build()
-
-        billingClient.queryProductDetailsAsync(inAppParams) { billingResult, productDetailsResult ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                val list = productDetailsResult.productDetailsList
-                Log.d("PlayBilling", "Fetched ${list.size} INAPP products from Play Console")
-                val updatedMap = playConsoleProducts.value.toMutableMap()
-                list.forEach { updatedMap[it.productId] = it }
-                playConsoleProducts.value = updatedMap
-            } else {
-                Log.e("PlayBilling", "queryProductDetails INAPP failed: ${billingResult.debugMessage}")
+            billingClient.queryProductDetailsAsync(inAppParam) { billingResult, productDetailsResult ->
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    val list = productDetailsResult.productDetailsList
+                    if (!list.isNullOrEmpty()) {
+                        Log.d("PlayBilling", "Found INAPP product on Play Console: $productId")
+                        val updatedMap = playConsoleProducts.value.toMutableMap()
+                        list.forEach { updatedMap[it.productId] = it }
+                        playConsoleProducts.value = updatedMap
+                    }
+                }
             }
         }
     }
@@ -225,9 +256,9 @@ class ProBillingActivity : ComponentActivity(), PurchasesUpdatedListener {
 
     private fun findProductDetails(plan: BillingPlan): ProductDetails? {
         val candidateIds = when (plan) {
-            BillingPlan.MONTHLY -> listOf("jdb-pro-monthly-01", "pro_monthly", "jdb-pro-monthly")
-            BillingPlan.YEARLY -> listOf("jdb-pro-yearly-01", "pro_yearly", "jdb-pro-yearly")
-            BillingPlan.LIFETIME -> listOf("jdb-pro-lifetime-01", "pro_lifetime", "pro_lifetime_purchase", "jdb-pro-lifetime")
+            BillingPlan.MONTHLY -> listOf("pro_monthly", "jdb-pro-monthly-01", "jdb-pro-monthly", "pro_99", "sku_99", "monthly_99", "pack_99", "pro_monthly_99", "monthly")
+            BillingPlan.YEARLY -> listOf("pro_yearly", "jdb-pro-yearly-01", "jdb-pro-yearly-12", "jdb-pro-yearly", "pro_499", "sku_499", "yearly_499", "pack_499", "pro_yearly_499", "yearly")
+            BillingPlan.LIFETIME -> listOf("pro_lifetime", "lifetime-pro", "jdb-pro-lifetime-01", "pro_lifetime_purchase", "jdb-pro-lifetime", "pro_999", "sku_999", "pack_999", "lifetime")
         }
 
         return candidateIds.firstNotNullOfOrNull { id -> playConsoleProducts.value[id] }
@@ -237,42 +268,74 @@ class ProBillingActivity : ComponentActivity(), PurchasesUpdatedListener {
         val productDetails = findProductDetails(plan)
 
         if (productDetails != null) {
-            // Find offerToken from backwards-compatible base plan (where offerId is null) or first offer
-            val offerToken = if (productDetails.productType == BillingClient.ProductType.SUBS) {
-                val offerList = productDetails.subscriptionOfferDetails
-                offerList?.firstOrNull { it.offerId == null }?.offerToken
-                    ?: offerList?.firstOrNull()?.offerToken
-            } else {
-                null
+            startBillingFlowForDetails(productDetails)
+        } else {
+            if (!billingClient.isReady) {
+                startBillingConnection()
+                Toast.makeText(this, "Connecting to Google Play Store...", Toast.LENGTH_SHORT).show()
+                return
             }
 
-            val productDetailsParamsBuilder = BillingFlowParams.ProductDetailsParams.newBuilder()
-                .setProductDetails(productDetails)
+            val candidateIds = when (plan) {
+                BillingPlan.MONTHLY -> listOf("pro_monthly", "jdb-pro-monthly-01", "jdb-pro-monthly", "pro_99", "sku_99")
+                BillingPlan.YEARLY -> listOf("pro_yearly", "jdb-pro-yearly-01", "jdb-pro-yearly-12", "jdb-pro-yearly", "pro_499", "sku_499")
+                BillingPlan.LIFETIME -> listOf("pro_lifetime", "lifetime-pro", "jdb-pro-lifetime-01", "pro_lifetime_purchase", "jdb-pro-lifetime", "pro_999", "sku_999")
+            }
 
+            Toast.makeText(this, "Querying Google Play for ${plan.title}...", Toast.LENGTH_SHORT).show()
+
+            var launched = false
+            candidateIds.forEach { id ->
+                listOf(BillingClient.ProductType.SUBS, BillingClient.ProductType.INAPP).forEach { type ->
+                    val param = QueryProductDetailsParams.newBuilder()
+                        .setProductList(
+                            listOf(
+                                QueryProductDetailsParams.Product.newBuilder()
+                                    .setProductId(id)
+                                    .setProductType(type)
+                                    .build()
+                            )
+                        )
+                        .build()
+
+                    billingClient.queryProductDetailsAsync(param) { billingResult, productDetailsResult ->
+                        if (!launched && billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                            val details = productDetailsResult.productDetailsList?.firstOrNull()
+                            if (details != null) {
+                                launched = true
+                                val updatedMap = playConsoleProducts.value.toMutableMap()
+                                updatedMap[id] = details
+                                playConsoleProducts.value = updatedMap
+
+                                startBillingFlowForDetails(details)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun startBillingFlowForDetails(productDetails: ProductDetails) {
+        val productDetailsParamsBuilder = BillingFlowParams.ProductDetailsParams.newBuilder()
+            .setProductDetails(productDetails)
+
+        if (productDetails.productType == BillingClient.ProductType.SUBS) {
+            val offerList = productDetails.subscriptionOfferDetails
+            val offerToken = offerList?.firstOrNull { it.offerId == null }?.offerToken
+                ?: offerList?.firstOrNull()?.offerToken
             if (!offerToken.isNullOrBlank()) {
                 productDetailsParamsBuilder.setOfferToken(offerToken)
             }
+        }
 
-            val billingFlowParams = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(listOf(productDetailsParamsBuilder.build()))
-                .build()
+        val billingFlowParams = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(listOf(productDetailsParamsBuilder.build()))
+            .build()
 
-            val result = billingClient.launchBillingFlow(this, billingFlowParams)
-            if (result.responseCode != BillingClient.BillingResponseCode.OK) {
-                Toast.makeText(this, "Play Store Billing launch failed: ${result.debugMessage}", Toast.LENGTH_LONG).show()
-            }
-        } else {
-            val requestedId = when (plan) {
-                BillingPlan.MONTHLY -> "jdb-pro-monthly-01"
-                BillingPlan.YEARLY -> "jdb-pro-yearly-01"
-                BillingPlan.LIFETIME -> "jdb-pro-lifetime-01"
-            }
-            Log.w("PlayBilling", "Product details for $requestedId not found on Play Console.")
-            Toast.makeText(
-                this,
-                "Product '$requestedId' not found on Play Console. Ensure product is published & active.",
-                Toast.LENGTH_LONG
-            ).show()
+        val result = billingClient.launchBillingFlow(this, billingFlowParams)
+        if (result.responseCode != BillingClient.BillingResponseCode.OK) {
+            Toast.makeText(this, "Play Store Billing launch failed: ${result.debugMessage}", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -810,22 +873,7 @@ fun ProBillingScreen(
                 }
             }
 
-            if (hasPendingTransaction) {
-                Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedButton(
-                    onClick = {
-                        submitPendingTransaction {
-                            onTransactionCompleted()
-                        }
-                    },
-                    enabled = !isSubmittingTransaction,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Proceed with Free Submission")
-                }
-            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
